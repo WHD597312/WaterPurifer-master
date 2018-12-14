@@ -1,6 +1,7 @@
 package com.peihou.waterpurifer.activity;
 
 import android.annotation.SuppressLint;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -51,7 +52,7 @@ public class JournalActivity extends BaseActivity {
     String userId,data;
     List<Data> dateList;
     JournalAdapter journalAdapter;
-
+    private ProgressDialog progressDialog;
 
     @Override
     public void initParms(Bundle parms) {
@@ -69,18 +70,35 @@ public class JournalActivity extends BaseActivity {
         if (application == null) {
             application = (MyApplication) getApplication();
         }
-
+        progressDialog = new ProgressDialog(this);
         application.addActivity(this);
         preferences = getSharedPreferences("my",MODE_PRIVATE);
         userId = preferences.getString("userId","");
         Calendar calendar = Calendar.getInstance();
         data = getTime(calendar.getTime());
+        tv_day_time.setText(data);
         new GetJournalAsyncTask().execute();
         initCustomTimePicker();
         dateList= new ArrayList<>();
         journalAdapter = new JournalAdapter(this,dateList);
         rv_day_time.setLayoutManager(new LinearLayoutManager(this));
         rv_day_time.setAdapter(journalAdapter);
+    }
+
+    //显示dialog
+    public void showProgressDialog(String message) {
+
+        progressDialog.setMessage(message);
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
+    }
+
+    //隐藏dialog
+    public void hideProgressDialog() {
+        if (progressDialog != null&&progressDialog.isShowing()){
+            progressDialog.dismiss();
+        }
     }
 
     @Override
@@ -108,21 +126,29 @@ public class JournalActivity extends BaseActivity {
         }
     }
     class GetJournalAsyncTask extends AsyncTask<Void ,Void,String>{
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            showProgressDialog("正在加载，请稍候。。。");
+        }
 
         @Override
         protected String doInBackground(Void... voids) {
             String code = "";
-            String result = HttpUtils.getOkHpptRequest(HttpUtils.ipAddress+"/data/searchData?userId="+userId+"&faultTime="+data);
+            String result = HttpUtils.getOkHpptRequest(HttpUtils.ipAddress+"/data/searchData?userId="+userId+"&faultDate="+data);
             Log.e("result", "doInBackground: -->"+result );
             if (!TextUtils.isEmpty(result)){
                 try {
+                    dateList.clear();
+                    Log.e("DDDDDDDDDDTTTTTT111", "doInBackground: -->"+dateList.size() );
                     JSONObject jsonObject = new JSONObject(result);
                     code = jsonObject.getString("returnCode");
                     JSONArray jsonArray = jsonObject.getJSONArray("returnData");
+                    Log.e("DDDDDDDDDDTTTTTT222", "doInBackground: -->"+jsonArray.length() );
                     for (int i =0 ;i<jsonArray.length();i++){
                         JSONObject jsonObject1 = jsonArray.getJSONObject(i);
-                        int faultId=  jsonObject.getInt("faultId");
-                        String faultDeviceMac = jsonObject1.getString("aultDeviceMac");
+                        int faultId=  jsonObject1.getInt("faultId");
+                        String faultDeviceMac = jsonObject1.getString("faultDeviceMac");
                         String faultType = jsonObject1.getString("faultType");
                         String faultTime = jsonObject1.getString("faultTime");
                         Data date = new Data();
@@ -132,6 +158,7 @@ public class JournalActivity extends BaseActivity {
                         date.setFaultType(faultType);
                         dateList.add(date);
                     }
+                    Log.e("DDDDDDDDDDTTTTTT333", "doInBackground: -->"+dateList.size() );
 
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -147,6 +174,7 @@ public class JournalActivity extends BaseActivity {
                 case "100":
                     journalAdapter.setmData(dateList);
                     journalAdapter.notifyDataSetChanged();
+                    hideProgressDialog();
                     break;
                     default:
                         ToastUtil.showShort(JournalActivity.this,"查询失败");
@@ -184,6 +212,8 @@ public class JournalActivity extends BaseActivity {
             @Override
             public void onTimeSelect(Date date, View v) {//选中事件回调
                 tv_day_time.setText(getTime(date));
+                data = getTime(date);
+                new GetJournalAsyncTask().execute();
             }
         })
                 /*.setType(TimePickerView.Type.ALL)//default is all
@@ -214,7 +244,7 @@ public class JournalActivity extends BaseActivity {
                         tvSubmit.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                pvCustomTime.returnData();
+                               pvCustomTime.returnData();
                                 pvCustomTime.dismiss();
                             }
                         });

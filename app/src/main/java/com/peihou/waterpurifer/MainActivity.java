@@ -85,7 +85,7 @@ public class MainActivity extends BaseActivity {
     Equipment equipment;
     EquipmentImpl equipmentDao;
     MessageReceiver receiver;
-
+    public static boolean isRunning =false;
     private  boolean clockisBound;
     int style;
     String[] mdate = {"PP滤芯", "UDF滤芯", "CTO滤芯", "RO滤芯", "T33滤芯"};
@@ -108,7 +108,7 @@ public class MainActivity extends BaseActivity {
 
     @Override
     public void initView(View view) {
-
+        isRunning = true;
         if (application == null) {
             application = (MyApplication) getApplication();
         }
@@ -175,6 +175,7 @@ public class MainActivity extends BaseActivity {
         rl_main_xh.setVisibility(View.INVISIBLE);
         textView1.setText("---");
         tv_main_sz.setVisibility(View.INVISIBLE);
+        tv_main_style.setText("");
         iv_top_sl.setVisibility(View.INVISIBLE);
         tv_main_dqsz.setText("当前水质：—");
         tv_main_lhsz.setText("当前无设备，请先添加设备");
@@ -379,21 +380,7 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onStateChanged(View bottomSheet, int newState) {
 
-
-                if (newState == BottomSheetBehavior.STATE_COLLAPSED) {
-
-                    adapter.setClickable(false);
-                }
-                if (newState == BottomSheetBehavior.STATE_EXPANDED) {
-
-                    adapter.setClickable(true);
-
-                }
-
-
             }
-
-
             @Override
             public void onSlide(View bottomSheet, float slideOffset) {
                 if (slideOffset > 0) {
@@ -402,7 +389,7 @@ public class MainActivity extends BaseActivity {
 //                    Log.e("height", "onSlide: -->" + slideOffset);
                     relativeLayout1.setTranslationY(-relativeLayout1.getMeasuredWidth() * scral);
                     tv_main_sb.setTranslationY(-relativeLayout1.getMeasuredWidth() * scral);
-                    tv_main_sz.setTranslationY(-relativeLayout1.getMeasuredWidth() * scral);
+//                    tv_main_sz.setTranslationY(-relativeLayout1.getMeasuredWidth() * scral);
                     tv_main_xh.setTranslationY(-relativeLayout1.getMeasuredWidth() * scral);
                     tv_main_style.setTranslationY(-relativeLayout1.getMeasuredWidth() * scral);
 //                    iv_main_1.setAlpha(224 * (1 - slideOffset));
@@ -417,8 +404,6 @@ public class MainActivity extends BaseActivity {
                 }
             }
         });
-
-
     }
     public void EquipmentChange(Equipment equipment){
         list.get(0).setWWaterStall(postion);
@@ -445,7 +430,14 @@ public class MainActivity extends BaseActivity {
             }
 
         }else if (busness==0x33){
-
+            int  wWaterStall = equipment.getWWaterStall();
+            if (wWaterStall==0xEE){
+                tv_main_style.setText("售水量: 有故障" );
+            }else if(wWaterStall==0xFF){
+                tv_main_style.setText("售水量: 已用完" );
+            }else if (wWaterStall==0xAA){
+                tv_main_style.setText("售水量: 未用完" );
+            }
         }else if (busness==0xFF){
             tv_main_style.setText("常规用户");
         }
@@ -468,8 +460,11 @@ public class MainActivity extends BaseActivity {
         }else if (Quqlity>600){
             tv_main_dqsz.setText("当前水质：差");
         }
-
         tv_main_sb.setText("设备在线");
+        int IsOpen = equipment.getIsOpen();
+        if (IsOpen==0){
+            tv_main_sb.setText("设备关机");
+        }
 
         Log.e("equipment", "EquipmentChange: -->"+equipment.getWPurifierfilter1() );
         adapter.haveGetData(true,equipment);
@@ -489,10 +484,17 @@ public class MainActivity extends BaseActivity {
     }
 
     @Override
+    protected void onStop() {
+        super.onStop();
+        isRunning=false;
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         if (clockisBound){
             unbindService(clockconnection);
         }
+        isRunning = false;
     }
 }

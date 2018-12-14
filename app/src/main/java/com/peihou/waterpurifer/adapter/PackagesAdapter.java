@@ -77,20 +77,20 @@ public class PackagesAdapter extends RecyclerView.Adapter<PackagesAdapter.MyView
         }
 
 
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onItemClickListener.onItemClick(v, position );
-            }
-        });
-        holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-
-                onItemClickListener.onLongClick(v, position );
-                return false;
-            }
-        });
+//        holder.itemView.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                onItemClickListener.onItemClick(v, position );
+//            }
+//        });
+//        holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+//            @Override
+//            public boolean onLongClick(View v) {
+//
+//                onItemClickListener.onLongClick(v, position );
+//                return false;
+//            }
+//        });
     }
 
     public void setIndex(int myposition) {

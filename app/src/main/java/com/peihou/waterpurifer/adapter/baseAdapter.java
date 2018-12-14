@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +14,7 @@ import android.widget.TextView;
 import com.peihou.waterpurifer.R;
 import com.peihou.waterpurifer.activity.DetailsActivity;
 import com.peihou.waterpurifer.pojo.Equipment;
+import com.peihou.waterpurifer.util.ToastUtil;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -101,13 +103,17 @@ public class baseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             ((MyViewholder) holder).relativeLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (click){
+                    if (hasData){
+                        if (!TextUtils.isEmpty(mEquipment.getWPurifierfilter1()+"")){
                         Intent intent = new Intent(context, DetailsActivity.class);
                         intent.putExtra("position",position);
                         int [] size = {mEquipment.getWPurifierfilter1(),mEquipment.getWPurifierfilter2(),mEquipment.getWPurifierfilter3()
                         ,mEquipment.getWPurifierfilter4(),mEquipment.getWPurifierfilter5() };
                         intent.putExtra("wPurifierfilter",size[position]);
                         context.startActivity(intent);
+                        }
+                    }else {
+                        ToastUtil.showShort(context,"设备离线，请检测设备");
                     }
 
                 }

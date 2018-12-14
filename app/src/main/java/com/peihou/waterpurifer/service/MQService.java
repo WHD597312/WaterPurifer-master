@@ -12,6 +12,8 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.peihou.waterpurifer.MainActivity;
+import com.peihou.waterpurifer.activity.EqupmentActivity;
 import com.peihou.waterpurifer.database.dao.EquipmentDao;
 import com.peihou.waterpurifer.database.dao.daoImp.EquipmentImpl;
 import com.peihou.waterpurifer.device.activity.AddDeviceActivity;
@@ -310,12 +312,21 @@ public class MQService extends Service {
                         equipment.setMachineType(MachineType);
                         equipment.setHaData(true);
                         equipmentDao.update(equipment);
-                        Intent mqttIntent = new Intent("MainActivity");
-                        mqttIntent.putExtra("msg", macAddress);
-                        mqttIntent.putExtra("msg1", equipment);
-                        sendBroadcast(mqttIntent);
+                        if (MainActivity.isRunning){
+                            Intent mqttIntent = new Intent("MainActivity");
+                            mqttIntent.putExtra("msg", macAddress);
+                            mqttIntent.putExtra("msg1", equipment);
+                            sendBroadcast(mqttIntent);
+                        } else  if (EqupmentActivity.isRunning){
+                            Intent mqttIntent = new Intent("EqupmentActivity");
+                            mqttIntent.putExtra("msg", macAddress);
+                            mqttIntent.putExtra("msg1", equipment);
+                            sendBroadcast(mqttIntent);
+                        }
+
 
                     }
+
                 }
             } catch (JSONException e) {
                 e.printStackTrace();

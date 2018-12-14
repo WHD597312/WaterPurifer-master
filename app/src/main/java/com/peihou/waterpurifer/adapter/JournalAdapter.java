@@ -5,6 +5,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,6 +30,7 @@ public class JournalAdapter extends RecyclerView.Adapter<JournalAdapter.MyViewHo
 
     public void setmData(List<Data> list) {
            this. mData= list;
+//           this.notifyDataSetChanged();
     }
 
     @NonNull
@@ -45,13 +47,13 @@ public class JournalAdapter extends RecyclerView.Adapter<JournalAdapter.MyViewHo
 
     @Override
     public void onBindViewHolder(@NonNull final MyViewHolder holder, final int position) {
-        holder.tv_day_gzyy.setVisibility(View.GONE);
 
+        /*yyyy-MM-dd */
             holder.iv_day_pic.setImageResource(R.mipmap.day_gz);
             holder.tv_day_zs.setVisibility(View.INVISIBLE);
             holder.tv_day_gzyy.setText(mData.get(position).getFaultType());
-            holder.tv_day_time.setText(getDateToString(Long.valueOf(mData.get(position).getFaultTime()),"yyyy-MM-dd HH:mm:ss"));
-
+            holder.tv_day_time.setText("今天 "+getDateToString(Long.valueOf(mData.get(position).getFaultTime()),"HH:mm:ss"));
+            holder.tv_day_sdsj.setText(mData.get(position).getFaultDeviceMac());
 //              holder.itemView.setOnClickListener(new View.OnClickListener() {
 //                  @Override
 //                  public void onClick(View v) {
@@ -88,7 +90,7 @@ public class JournalAdapter extends RecyclerView.Adapter<JournalAdapter.MyViewHo
 
     class MyViewHolder extends RecyclerView.ViewHolder {
         ImageView iv_day_pic;
-        TextView tv_day_zs,tv_day_gzyy,tv_day_time;
+        TextView tv_day_zs,tv_day_gzyy,tv_day_time,tv_day_sdsj;
 //        RelativeLayout rl_sequitem;
         public MyViewHolder(View itemView) {
             super(itemView);
@@ -96,6 +98,7 @@ public class JournalAdapter extends RecyclerView.Adapter<JournalAdapter.MyViewHo
             tv_day_zs= (TextView)itemView.findViewById(R.id.tv_day_zs);
             tv_day_gzyy= (TextView)itemView.findViewById(R.id.tv_day_gzyy);
             tv_day_time =(TextView)itemView.findViewById(R.id.tv_day_time);
+            tv_day_sdsj= (TextView) itemView.findViewById(R.id.tv_day_sdsj);
 //            rl_sequitem=(RelativeLayout) itemView.findViewById(R.id.rl_sequitem);
         }
     }

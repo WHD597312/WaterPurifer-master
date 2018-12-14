@@ -2,8 +2,10 @@ package com.peihou.waterpurifer.activity;
 
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -54,6 +56,8 @@ public class EqupmentActivity extends BaseActivity {
     SharedPreferences preferences;
     EqupmentAdapter equpmentAdapter;
     boolean isShare=false;
+    public static boolean isRunning = false;
+    MessageReceiver receiver;
     @Override
     public void initParms(Bundle parms) {
 
@@ -70,6 +74,7 @@ public class EqupmentActivity extends BaseActivity {
         if (application == null) {
             application = (MyApplication) getApplication();
         }
+        isRunning = true;
         application.addActivity(this);
         equmentDao = new EquipmentImpl(getApplicationContext());
         equipment = new Equipment();
@@ -107,6 +112,9 @@ public class EqupmentActivity extends BaseActivity {
                 }
             }
         });
+        IntentFilter intentFilter = new IntentFilter("EqupmentActivity");
+        receiver = new MessageReceiver();
+        registerReceiver(receiver, intentFilter);
     }
 
     @Override
@@ -114,6 +122,12 @@ public class EqupmentActivity extends BaseActivity {
         super.onStart();
 //        equipment = equmentDao.findAll();
 //        equpmentAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        isRunning=false;
     }
 
     /**
@@ -369,6 +383,27 @@ public class EqupmentActivity extends BaseActivity {
             equipments.add(equipment);
             Log.e("ddddd", "initView: -->"+ equipments.size() );
             equpmentAdapter.notifyDataSetChanged();
+        }
+    }
+
+    class MessageReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.e("qqqqqZZZZ???", "11111");
+            String msg = intent.getStringExtra("msg");
+            Equipment msg1 =(Equipment)intent.getSerializableExtra("msg1");
+            Log.e("DDDDDDTTTT", "onReceive: -->"+msg1+">>>>"+equipments.get(0)+">>>"+equipments.get(1) );
+//            if (msg1!=null && equipments.contains(msg1)){
+////                int index=equipments.indexOf(msg1);
+////                equipments.set(index,msg1);
+////                equpmentAdapter.RefrashData(equipments);
+////                equpmentAdapter.notifyDataSetChanged();
+////            }
+//            equipments = equmentDao.findDeviceByRoleFlag(0);
+//            equipments.add(equipment);
+//            equpmentAdapter.RefrashData(equipments);
+//            equpmentAdapter.notifyDataSetChanged();
+
         }
     }
 }

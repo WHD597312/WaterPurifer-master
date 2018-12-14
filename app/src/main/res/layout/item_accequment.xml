@@ -13,6 +13,7 @@
         android:layout_centerHorizontal="true"
         android:text="365"
         android:textSize="@dimen/sp_30"
+        android:visibility="gone"
         android:layout_marginTop="@dimen/dp_jy_37"
         android:textColor="@color/color_toblue"
         />
@@ -21,6 +22,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="剩余天数（天）"
+        android:visibility="gone"
         android:layout_centerHorizontal="true"
         android:layout_below="@+id/tv_buy_day"
         android:layout_marginTop="@dimen/dp_jy_11"
@@ -35,7 +37,7 @@
         android:layout_height="wrap_content"
         android:src="@mipmap/equ_jsq"
         android:layout_centerHorizontal="true"
-        android:visibility="gone"
+
         />
     <TextView
         android:id="@+id/tv_seqp_name"

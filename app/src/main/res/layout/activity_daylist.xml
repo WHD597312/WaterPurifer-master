@@ -57,7 +57,7 @@
         android:layout_below="@+id/li_main_bt"
         >
    <TextView
-       android:id="@+id/tv_day_time"
+           android:id="@+id/tv_day_time"
        android:layout_width="wrap_content"
        android:layout_height="wrap_content"
        android:text="2018-11-09"
