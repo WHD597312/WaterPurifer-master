@@ -174,9 +174,13 @@ public class JournalActivity extends BaseActivity {
                 case "100":
                     journalAdapter.setmData(dateList);
                     journalAdapter.notifyDataSetChanged();
+                    if (dateList.size()==0){
+                        toast("没有数据");
+                    }
                     hideProgressDialog();
                     break;
                     default:
+                        hideProgressDialog();
                         ToastUtil.showShort(JournalActivity.this,"查询失败");
                         break;
             }

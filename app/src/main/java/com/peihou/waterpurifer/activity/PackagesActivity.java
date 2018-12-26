@@ -69,6 +69,7 @@ public class PackagesActivity extends BaseActivity   {
         int deviceSellerId = intent.getIntExtra("deviceSellerId",-1);
         int devicePayType = intent.getIntExtra("devicePayType",-1);
         int deviceLeaseType = intent.getIntExtra("deviceLeaseType",-1);
+        Log.e("DDDDDDTTTTT", "initView: -->deviceSellerId"+deviceSellerId +"...devicePayType"+devicePayType+"...deviceLeaseType"+deviceLeaseType );
         Map<String,Object> params = new HashMap<>();
         params.put("deviceSellerId",deviceSellerId);
         params.put("deviceLeaseType",deviceLeaseType);
@@ -192,7 +193,7 @@ public class PackagesActivity extends BaseActivity   {
             super.onPostExecute(s);
             switch (s){
                 case "100":
-                    packagesList1= packagesDao.findAll();
+                       packagesList1= packagesDao.findAll();
                         packageAdapter.setData(packagesList1);
                         packageAdapter.notifyDataChanged();
                     break;

@@ -139,8 +139,9 @@ public class baseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                     ((ViewHolderC) holder).tv_ysl_dw2.setText( "t");
                 }
 
-            }
 
+            }
+            ((ViewHolderC) holder).tv_ysl_today.setText(mEquipment.getTodayUse()+"");
 
         }
 

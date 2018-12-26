@@ -24,7 +24,7 @@ public class xqRepairAdapter extends RecyclerView.Adapter<xqRepairAdapter.MyView
 
     private List<RepairList> mData;
     private Context context;
-    private String[] list= {"等待接单"};
+    private String[] list= {"等待接单","正在处理","处理完成","已删除"};
     private  String repairId;
     private RepairList repairList;
 
@@ -45,11 +45,25 @@ public class xqRepairAdapter extends RecyclerView.Adapter<xqRepairAdapter.MyView
     public void onBindViewHolder(@NonNull final MyViewHolder holder, final int position) {
              holder.tv_xqre_type1.setText(mData.get(position).getRepairDeviceType());
              holder.tv_xqre_jdzt1.setText(list[mData.get(position).getRepairFlag()]);
+
+             if (mData.get(position).getRepairFlag()==2){
+                 holder.bt_xqre_td.setText("删除");
+                 holder.bt_xqre_td.setTextColor(context.getResources().getColor(R.color.red_pressed));
+                 holder.bt_xqre_td.setBackground(context.getDrawable(R.drawable.bg_xqrepair_td));
+             } else  if (mData.get(position).getRepairFlag()==3){
+                 holder.bt_xqre_td.setText("已删除");
+                 holder.bt_xqre_td.setTextColor(context.getResources().getColor(R.color.color_gray2));
+                 holder.bt_xqre_td.setBackground(context.getDrawable(R.drawable.bg_xqrepair_td1));
+             }else {
+                 holder.bt_xqre_td.setText("退单");
+                 holder.bt_xqre_td.setTextColor(context.getResources().getColor(R.color.color_toblue));
+                 holder.bt_xqre_td.setBackground(context.getDrawable(R.drawable.bg_xqrepair_td));
+             }
              holder.tv_xqre_yytime1.setText(mData.get(position).getRepairTime());
              holder.bt_xqre_td.setOnClickListener(new View.OnClickListener() {
                  @Override
                  public void onClick(View v) {
-                    deleteDeviceDialog(position);
+                    deleteDeviceDialog(position,mData.get(position).getRepairFlag());
                  }
              });
     }
@@ -59,8 +73,9 @@ public class xqRepairAdapter extends RecyclerView.Adapter<xqRepairAdapter.MyView
         return mData.size();
     }
 
-    private void deleteDeviceDialog(final int pos) {
+    private void deleteDeviceDialog(final int pos,final int Flag) {
         final repairDialog dialog = new repairDialog(context);
+
         dialog.setOnNegativeClickListener(new repairDialog.OnNegativeClickListener() {
             @Override
             public void onNegativeClick() {
@@ -78,6 +93,7 @@ public class xqRepairAdapter extends RecyclerView.Adapter<xqRepairAdapter.MyView
             }
         });
         dialog.show();
+        dialog.setText(Flag);
     }
     class DeleteRepairAsyncTask extends AsyncTask<Void,Void,String> {
 

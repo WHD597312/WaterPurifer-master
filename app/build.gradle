@@ -14,6 +14,14 @@ greendao {
 }
 
 android {
+    signingConfigs {
+        config {
+            keyAlias 'key0'
+            keyPassword '123456'
+            storeFile file('D:/android/WaterPurifer-master/water.jks')
+            storePassword '123456'
+        }
+    }
     compileSdkVersion 27
     defaultConfig {
         applicationId "com.peihou.waterpurifer"
@@ -71,5 +79,6 @@ dependencies {
     implementation(name: 'alipaySdk-15.5.7-20181023110917', ext: 'aar')
     implementation 'com.tencent.mm.opensdk:wechat-sdk-android-with-mta:+'
     implementation 'com.github.donkingliang:GroupedRecyclerViewAdapter:1.3.2'
-
+    implementation 'com.scwang.smartrefresh:SmartRefreshLayout:1.1.0-alpha-16'
+    implementation 'com.scwang.smartrefresh:SmartRefreshHeader:1.1.0-alpha-16'
 }

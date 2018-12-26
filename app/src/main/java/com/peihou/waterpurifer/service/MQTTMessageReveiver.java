@@ -32,6 +32,8 @@ public class MQTTMessageReveiver extends BroadcastReceiver {
             mqttIntent.putExtra("reconnect","reconnect");
             mqttIntent.putExtra("isClockFinish","isClockFinish");
             context.startService(mqttIntent);
+            boolean t =ToastUtil.isServiceRunning(context,"com.peihou.waterpurifer.service.MQService");
+            Log.e("DDDDDDDDDDSSSSS", "onStart: -->"+t );
         }
 
         if (!isConn) {

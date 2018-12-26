@@ -57,6 +57,33 @@
         android:background="@color/white"
         android:layout_below="@+id/li_main_bt"
         >
+        <RelativeLayout
+            android:id="@+id/rl_user_cpass"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/dp_jy_50"
+            >
+            <TextView
+                android:id="@+id/tv_bz1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="当前地址："
+                android:layout_marginLeft="@dimen/dp_jy_12"
+                android:layout_centerVertical="true"
+                android:textSize="@dimen/sp_16"
+                android:textColor="#333333"
+                />
+            <TextView
+                android:id="@+id/tv_chang_adress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toRightOf="@+id/tv_bz1"
+                android:layout_marginLeft="@dimen/dp_jy_20"
+                android:layout_centerVertical="true"
+                android:textSize="@dimen/sp_16"
+                android:textColor="#333333"
+                />
+
+        </RelativeLayout>
 
 
         <RelativeLayout
@@ -124,8 +151,11 @@
         android:id="@+id/bt_adress_add"
         android:layout_width="match_parent"
         android:layout_height="@dimen/dp_jy_40"
-        android:layout_centerInParent="true"
+        android:layout_below="@+id/rl_user_1"
         android:background="@drawable/bg_login1"
+        android:layout_marginTop="@dimen/dp_jy_40"
+        android:layout_marginLeft="@dimen/dp_jy_20"
+        android:layout_marginRight="@dimen/dp_jy_20"
         android:text="提交"
         android:textColor="@color/white"
         android:textSize="@dimen/sp_18" />

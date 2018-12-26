@@ -59,6 +59,8 @@ public class ChangAddressActivity extends BaseActivity {
     EditText et_address_adressxq;
     @BindView(R.id.tv_user_adresxq)
     TextView tv_user_adresxq;
+    @BindView(R.id.tv_chang_adress)
+            TextView tv_chang_adress;
     String adress1,adress2 ;
     private PopupWindow mPopWindow;
     int sign_sheng = 0, sign_city = 0, isDefault = 1, receiveId = 0;
@@ -72,7 +74,7 @@ public class ChangAddressActivity extends BaseActivity {
     List<District> districts = null;
     District district = null;
     SharedPreferences preferences;
-    String id;
+    String id,address;
     @Override
     public void initParms(Bundle parms) {
 
@@ -93,11 +95,12 @@ public class ChangAddressActivity extends BaseActivity {
         progressDialog = new ProgressDialog(this);
         preferences = getSharedPreferences("my", MODE_PRIVATE);
         id = preferences.getString("userId","");
+        address = preferences.getString("address","");
     }
 
     @Override
     public void doBusiness(Context mContext) {
-
+        tv_chang_adress.setText(address);
     }
 
     @Override
@@ -163,10 +166,12 @@ public class ChangAddressActivity extends BaseActivity {
                 try {
                     JSONObject jsonObject = new JSONObject(result);
                     code = jsonObject.getString("returnCode");
-                    JSONObject returnData = jsonObject.getJSONObject("returnData");
+
                     if ("100".equals(code)){
-
-
+                    JSONObject returnData = jsonObject.getJSONObject("returnData");
+                     SharedPreferences.Editor editor = preferences.edit();
+                     editor.putString("address",adress1+adress2);
+                     editor.commit();
                     }
 
 
@@ -183,6 +188,7 @@ public class ChangAddressActivity extends BaseActivity {
             switch (s) {
 
                 case "100":
+                    tv_chang_adress.setText(adress1+adress2);
                     startActivity(MainActivity.class);
                     ToastUtil.showShort(ChangAddressActivity.this, "修改成功");
 
@@ -380,7 +386,7 @@ public class ChangAddressActivity extends BaseActivity {
             if (cities.size() > 0) {
                 districts = cities.get(sign_city).getDistricts();
                 for (int a = 0; a < districts.size(); a++) {
-                    if (!districts.get(a).getName().equals(cities.get(sign_city).getName()))
+
                         data.add(districts.get(a).getName());
                 }
             } else {

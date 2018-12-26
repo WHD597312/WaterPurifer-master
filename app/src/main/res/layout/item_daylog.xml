@@ -16,12 +16,12 @@
         android:id="@+id/tv_day_zs"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="制水"
+        android:text="故障"
         android:layout_toRightOf="@+id/iv_day_pic"
         android:layout_marginLeft="@dimen/dp_jy_20"
         android:layout_marginTop="@dimen/dp_jy_10"
-        android:textColor="@color/color_toblue"
-        android:textSize="@dimen/sp_14"
+        android:textColor="#DD5C39"
+        android:textSize="@dimen/sp_15"
         />
     <TextView
         android:id="@+id/tv_day_sdsj"
@@ -31,7 +31,8 @@
         android:layout_toRightOf="@+id/tv_day_zs"
         android:layout_marginLeft="@dimen/dp_jy_20"
         android:layout_marginTop="@dimen/dp_jy_10"
-        android:textColor="#878787"
+        android:textColor="#666666"
+
         android:textSize="@dimen/sp_14"
         />
     <TextView
@@ -43,8 +44,8 @@
         android:layout_marginLeft="@dimen/dp_jy_20"
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="@dimen/dp_jy_10"
-        android:textColor="#DD5C39"
-        android:textSize="@dimen/sp_11"
+        android:textColor="#666666"
+        android:textSize="@dimen/sp_14"
         />
     <TextView
         android:id="@+id/tv_day_time"
@@ -52,7 +53,7 @@
         android:layout_height="wrap_content"
         android:text="今天  11:05"
         android:layout_alignParentRight="true"
-        android:layout_marginRight="@dimen/dp_jy_20"
+        android:layout_marginRight="@dimen/dp_jy_10"
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="@dimen/dp_jy_10"
         android:textColor="#bbbbbb"

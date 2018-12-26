@@ -199,6 +199,7 @@ public class MQService extends Service {
                     messageJsonArray = messageJsonObject.getJSONArray("WPurifier");
                 }
                 if (messageJsonArray != null) {
+                    Log.e("hasData", "getDate: -->");
                     int wPurifierState;/*净水器状态*/
                     int bussinessmodule;/*商业模式*/
                     /*净水器滤芯寿命 1-5*/

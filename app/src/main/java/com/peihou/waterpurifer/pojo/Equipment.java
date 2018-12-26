@@ -13,6 +13,7 @@ public class Equipment implements Serializable{
     @Id(autoincrement = false)
     private long id;/*设备id*/
     private int type;/*设备类型*/
+    private int todayUse;/*今日用水量*/
     private boolean haData; /*是否有数据*/
     private String name;/*设备名称*/
     private String deviceMac;/*设备mac*/
@@ -338,6 +339,12 @@ public class Equipment implements Serializable{
     public void setHaData(boolean haData) {
         this.haData = haData;
     }
+    public int getTodayUse() {
+        return this.todayUse;
+    }
+    public void setTodayUse(int todayUse) {
+        this.todayUse = todayUse;
+    }
     public int getType() {
         return this.type;
     }
@@ -350,9 +357,9 @@ public class Equipment implements Serializable{
     public void setId(long id) {
         this.id = id;
     }
-    @Generated(hash = 2140918359)
-    public Equipment(long id, int type, boolean haData, String name, String deviceMac, String deviceMCU, int roleFlag,
-            int deviceLeaseType, int devicePayType, int deviceSellerId, int deviceFlag, int deviceUserId,
+    @Generated(hash = 127966001)
+    public Equipment(long id, int type, int todayUse, boolean haData, String name, String deviceMac, String deviceMCU,
+            int roleFlag, int deviceLeaseType, int devicePayType, int deviceSellerId, int deviceFlag, int deviceUserId,
             int wPurifierState, int bussinessmodule, int wPurifierfilter, int wPurifierfilter1, int wPurifierfilter2,
             int wPurifierfilter3, int wPurifierfilter4, int wPurifierfilter5, String wTrueFlowmeter,
             String wPurifierPrimaryQuqlity, int FlowmeterWarm, int wPurifierOutQuqlity, String wTotalProductionTime,
@@ -363,6 +370,7 @@ public class Equipment implements Serializable{
             int WashTime) {
         this.id = id;
         this.type = type;
+        this.todayUse = todayUse;
         this.haData = haData;
         this.name = name;
         this.deviceMac = deviceMac;
@@ -414,6 +422,7 @@ public class Equipment implements Serializable{
     @Generated(hash = 748305627)
     public Equipment() {
     }
+ 
   
    
 }

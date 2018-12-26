@@ -1,10 +1,16 @@
 package com.peihou.waterpurifer.util;
 
+import android.app.ActivityManager;
+import android.app.ApplicationErrorReport;
 import android.content.Context;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by wangwentao on 2017/1/25.
@@ -284,4 +290,36 @@ public class ToastUtil {
         }
         return flag;
     }
+
+    /**
+     * 判断服务是否开启
+     *
+     * @return
+     */
+    /*
+     * 判断服务是否启动,context上下文对象 ，className服务的name
+     */
+    public static boolean isServiceRunning(Context mContext, String className) {
+
+        boolean isRunning = false;
+        ActivityManager activityManager = (ActivityManager) mContext
+                .getSystemService(Context.ACTIVITY_SERVICE);
+        List<ActivityManager.RunningServiceInfo> serviceList = activityManager
+                .getRunningServices(100);
+
+        if (!(serviceList.size() > 0)) {
+            return false;
+        }
+        Log.e("OnlineService：",className);
+        for (int i = 0; i < serviceList.size(); i++) {
+            Log.e("serviceName：",serviceList.get(i).service.getClassName());
+            if (serviceList.get(i).service.getClassName().contains(className) == true) {
+                isRunning = true;
+                break;
+            }
+        }
+        return isRunning;
+    }
+
+
 }

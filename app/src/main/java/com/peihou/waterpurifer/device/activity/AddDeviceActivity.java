@@ -331,9 +331,6 @@ public class AddDeviceActivity extends BaseActivity {
         }
     }
 
-
-
-
     private Handler handler = new Handler(){
         @Override
         public void handleMessage(Message msg) {
@@ -370,11 +367,10 @@ public class AddDeviceActivity extends BaseActivity {
                         equipment.setId(Long.valueOf(deviceMac));
                         equmentDao.insert(equipment);
                         equipment2 = equipment;
-                       String onlineTopicName = "p99/wPurifier1/" + deviceMac + "/transfer";
-                       String offlineTopicName = "p99/wPurifier1/" + deviceMac + "/lwt";
+                        String onlineTopicName = "p99/wPurifier1/" + deviceMac + "/transfer";
+                        String offlineTopicName = "p99/wPurifier1/" + deviceMac + "/lwt";
                         clcokservice.subscribe(onlineTopicName,1);
                         clcokservice.subscribe(offlineTopicName,1);
-
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -401,12 +397,18 @@ public class AddDeviceActivity extends BaseActivity {
                     break;
 
                 case "10007":
+                    if (progressDialog!=null&&progressDialog.isShowing())
+                        progressDialog.dismiss();
                     ToastUtil.showShort(AddDeviceActivity.this, "您已添加该设备，请耐心等候代理商激活");
                     break;
                 case "10006":
+                    if (progressDialog!=null&&progressDialog.isShowing())
+                        progressDialog.dismiss();
                     ToastUtil.showShort(AddDeviceActivity.this, "设备已被其他用户绑定，请联系代理商");
                     break;
                 case "10005":
+                    if (progressDialog!=null&&progressDialog.isShowing())
+                        progressDialog.dismiss();
                     ToastUtil.showShort(AddDeviceActivity.this, "设备还未注册，请联系代理商");
                     break;
 

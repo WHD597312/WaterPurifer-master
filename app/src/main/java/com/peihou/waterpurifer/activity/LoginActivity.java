@@ -53,6 +53,7 @@ import com.peihou.waterpurifer.util.ToastUtil;
 import com.peihou.waterpurifer.util.view.ScreenSizeUtils;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.List;
@@ -100,7 +101,6 @@ public class LoginActivity extends BaseActivity {
         application.addActivity(this);
         preferences = getSharedPreferences("my", MODE_PRIVATE);
         et_name.setText(preferences.getString("phone", ""));
-        et_pswd.setText(preferences.getString("password", ""));
         equmentDao = new EquipmentImpl(getApplicationContext());
         progressDialog = new ProgressDialog(this);
 
@@ -124,6 +124,7 @@ public class LoginActivity extends BaseActivity {
 
     }
 
+
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
@@ -134,6 +135,10 @@ public class LoginActivity extends BaseActivity {
     }
     @Override
     public void doBusiness(Context mContext) {
+      List<Equipment> list =  equmentDao.findAll();
+      for (int i =0;i<list.size();i++){
+
+      }
 
     }
 
@@ -141,6 +146,42 @@ public class LoginActivity extends BaseActivity {
     public void widgetClick(View v) {
 
 }
+
+//    class GetTodayWaterAsyncTask extends AsyncTask<Equipment,Void,String>{
+//
+//
+//        @Override
+//        protected String doInBackground(Equipment... equipment) {
+//            String code = "";
+//            String deviceMac = equipment[0].getDeviceMac();
+//            String result = HttpUtils.getOkHpptRequest(HttpUtils.ipAddress+"/data/getDeviceAmount?deviceMac="+deviceMac);
+//            Log.e("result", "doInBackground: -->"+result );
+//            if (!TextUtils.isEmpty(result)){
+//                try {
+//                    JSONObject jsonObject = new JSONObject(result);
+//                    JSONArray jsonArray = jsonObject.getJSONArray("returnData");
+//                    int  todayUse = jsonObject.getInt("seven");
+//                    equipment[0].setTodayUse(todayUse);
+//                    equmentDao.update(equipment[0]);
+//                } catch (JSONException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//            return code;
+//        }
+//
+//        @Override
+//        protected void onPostExecute(String s) {
+//            super.onPostExecute(s);
+//            switch (s){
+//                case "100":
+//
+//                    break;
+//
+//            }
+//        }
+//    }
+
     LoginAsyncTask task;
     @OnClick({R.id.btn_login, R.id.tv_register, R.id.tv_forget_pswd, R.id.image_seepwd})
     public void onClick(View view){
@@ -263,19 +304,22 @@ public class LoginActivity extends BaseActivity {
              try {
                  JSONObject jsonObject = new JSONObject(result);
                  code = jsonObject.getString("returnCode");
-                 JSONObject returnData = jsonObject.getJSONObject("returnData");
+                 if ("100".equals(code)) {
+                     JSONObject returnData = jsonObject.getJSONObject("returnData");
                      userId = returnData.getString("userId");
-                     phone=returnData.getString("phone");
-                     password=returnData.getString("password");
+                     phone = returnData.getString("phone");
+                     password = returnData.getString("password");
                      String token = returnData.getString("token");
+                     String address = returnData.getString("address");
                      SharedPreferences.Editor editor = preferences.edit();
                      Log.i("phone", "---->: " + phone + ",,,," + password);
                      editor.putString("phone", phone);
                      editor.putString("userId", userId);
                      editor.putString("password", password);
                      editor.putString("token", token);
+                     editor.putString("address", address);
                      editor.commit();
-
+                 }
 
              } catch (Exception e) {
                  e.printStackTrace();
@@ -372,6 +416,7 @@ public class LoginActivity extends BaseActivity {
                         int devicePayType = Devices.getInt("devicePayType");
                         int deviceFlag = Devices.getInt("deviceFlag");
                         int deviceSellerId = Devices.getInt("deviceSellerId");
+                        int deviceData = Devices.getInt("deviceData");
                         Equipment equipment1 = new Equipment();
                         equipment1.setId(deviceId);
                         equipment1.setDeviceMac(deviceMac);
@@ -384,7 +429,10 @@ public class LoginActivity extends BaseActivity {
                         equipment1.setDeviceSellerId(deviceSellerId);
                         equipment1.setRoleFlag(0);
                         equipment1.setHaData(false);
+                        equipment1.setTodayUse(deviceData);
                         equmentDao.insert(equipment1);
+                        Log.e("DDDDDDDDDDDDDAAAAA", "doInBackground: -->"+    equmentDao.findDeviceByMacAddress2(deviceMac).getTodayUse() );
+
 
                     }
 

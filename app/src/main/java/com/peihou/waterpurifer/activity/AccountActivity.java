@@ -79,7 +79,7 @@ public class AccountActivity extends BaseActivity {
             public void onItemClick(View view, int position) {
                     int deviceSellerId =  equipments.get(position).getDeviceSellerId();
                     int deviceLeaseType = equipments.get(position).getDeviceLeaseType();
-                    int devicePayType = equipments.get(position).getDevicePayType();
+                int devicePayType = equipments.get(position).getDevicePayType();
                     Intent intent = new Intent(AccountActivity.this,PackagesActivity.class);
                     intent.putExtra("deviceSellerId",deviceSellerId);
                     intent.putExtra("deviceLeaseType",deviceLeaseType);

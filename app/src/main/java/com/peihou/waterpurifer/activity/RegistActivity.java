@@ -2,6 +2,7 @@ package com.peihou.waterpurifer.activity;
 
 
 import android.annotation.SuppressLint;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -10,22 +11,33 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 import com.peihou.waterpurifer.R;
+import com.peihou.waterpurifer.adapter.RepairListAdapter;
 import com.peihou.waterpurifer.base.BaseActivity;
 import com.peihou.waterpurifer.base.MyApplication;
+import com.peihou.waterpurifer.database.dao.daoImp.EquipmentImpl;
+import com.peihou.waterpurifer.pojo.Equipment;
 import com.peihou.waterpurifer.util.HttpUtils;
 import com.peihou.waterpurifer.util.Mobile;
 import com.peihou.waterpurifer.util.NetWorkUtil;
 import com.peihou.waterpurifer.util.ToastUtil;
+import com.peihou.waterpurifer.util.view.ScreenSizeUtils;
 
 import org.json.JSONObject;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -51,6 +63,7 @@ public class RegistActivity extends BaseActivity {
     String password1;
     String password2;
     String adress;
+
     @Override
     public void initParms(Bundle parms) {
 
@@ -70,6 +83,7 @@ public class RegistActivity extends BaseActivity {
         progressDialog = new ProgressDialog(this);
         preferences = getSharedPreferences("my", MODE_PRIVATE);
         application.addActivity(this);
+
 
     }
 
@@ -154,6 +168,9 @@ public class RegistActivity extends BaseActivity {
         }
 
     }
+
+
+
     //显示dialog
     public void showProgressDialog(String message) {
 

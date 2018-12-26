@@ -1,6 +1,7 @@
 package com.peihou.waterpurifer.activity;
 
 import android.annotation.SuppressLint;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -11,6 +12,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
@@ -18,6 +20,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
@@ -35,14 +38,18 @@ import com.bigkoo.pickerview.listener.OnTimeSelectListener;
 import com.bigkoo.pickerview.view.TimePickerView;
 import com.peihou.waterpurifer.R;
 import com.peihou.waterpurifer.adapter.CityAdapter;
+import com.peihou.waterpurifer.adapter.RepairListAdapter;
 import com.peihou.waterpurifer.base.BaseActivity;
 import com.peihou.waterpurifer.base.MyApplication;
 import com.peihou.waterpurifer.bean.City;
 import com.peihou.waterpurifer.bean.District;
 import com.peihou.waterpurifer.bean.Province;
+import com.peihou.waterpurifer.database.dao.daoImp.EquipmentImpl;
+import com.peihou.waterpurifer.pojo.Equipment;
 import com.peihou.waterpurifer.util.HttpUtils;
 import com.peihou.waterpurifer.util.NetWorkUtil;
 import com.peihou.waterpurifer.util.ToastUtil;
+import com.peihou.waterpurifer.util.view.ScreenSizeUtils;
 
 import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParserException;
@@ -79,6 +86,10 @@ public class RepairActivity extends BaseActivity {
     EditText et_repair_ms;
     @BindView(R.id.tv_repair_repir)
     TextView tv_repair_repir;
+    @BindView(R.id.tv_repair_name1)
+    TextView tv_repair_name1;
+    @BindView(R.id.tv_repair_gz)
+    TextView tv_repair_gz;
     private TimePickerView  pvCustomTime;
     private PopupWindow mPopWindow;
     private View contentViewSign;
@@ -99,6 +110,8 @@ public class RepairActivity extends BaseActivity {
     String repairTime,repairAddress1,repairAddress2 ;
     SharedPreferences preferences ;
     String phone,userId;
+    List<Equipment> equipmentList ;
+    EquipmentImpl equipmentDao;
     @Override
     public void initParms(Bundle parms) {
 
@@ -120,6 +133,8 @@ public class RepairActivity extends BaseActivity {
         preferences = getSharedPreferences("my",MODE_PRIVATE);
         phone = preferences.getString("phone","");
         userId =preferences.getString("userId","");
+        equipmentDao = new EquipmentImpl(getApplicationContext());
+        equipmentList = equipmentDao.findDeviceByRoleFlag(0);
        initCustomTimePicker();
 
     }
@@ -135,10 +150,19 @@ public class RepairActivity extends BaseActivity {
     }
     RepairAsyncTask task;
     @OnClick({R.id.iv_main_memu,R.id.iv_repair_xq,R.id.rl_repair_type,R.id.rl_repair_time,
-    R.id.rl_repair_adres,R.id.bt_repair_qd
+    R.id.rl_repair_adres,R.id.bt_repair_qd,R.id.rl_repair_name
     })
     public void onClick(View view){
         switch (view.getId()){
+            case R.id.rl_repair_name:
+                if (equipmentList.size()>0){
+                    customDialog();
+                }else {
+                    toast("对不起，您没有可维修的设备");
+                }
+
+                break;
+
             case R.id.iv_main_memu:
                 finish();
                 break;
@@ -146,8 +170,14 @@ public class RepairActivity extends BaseActivity {
                 startActivity(new Intent(this,XqRepairActivity.class));
                 break;
             case R.id.rl_repair_type:
-//                popupmenuWindow();
-
+                List<Equipment> list = new ArrayList<>();
+                String [] name = new String[]{"报警故障","传感器故障","异常故障","其他"};
+                for (int i = 0;i<4;i++){
+                    Equipment equipment = new Equipment();
+                    equipment.setDeviceMac(name[i]);
+                    list.add(equipment);
+                }
+                customDialog1(list);
                 break;
 
             case R.id.rl_repair_time:
@@ -157,11 +187,10 @@ public class RepairActivity extends BaseActivity {
             case R.id.rl_repair_adres:
 
                 if (view != null) {
-                    InputMethodManager inputmanger = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                    assert inputmanger != null;
-                    inputmanger.hideSoftInputFromWindow(view.getWindowToken(), 0);
-                }
-
+                InputMethodManager inputmanger = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                assert inputmanger != null;
+                inputmanger.hideSoftInputFromWindow(view.getWindowToken(), 0);
+            }
                 new Handler().postDelayed(new Runnable() {
                     public void run() {
                         showPopup();
@@ -172,6 +201,16 @@ public class RepairActivity extends BaseActivity {
             case R.id.bt_repair_qd:
                 repairAddress2 = et_repair_adressxq.getText().toString().trim();
                 String repairDesc = et_repair_ms.getText().toString().trim();
+                String repairDeviceMac = tv_repair_name1.getText().toString().trim();
+                String repairType = tv_repair_gz.getText().toString().trim();
+                if (TextUtils.isEmpty(repairDeviceMac)){
+                    toast("请选择设备");
+                    break;
+                }
+                if(TextUtils.isEmpty(repairType)){
+                    toast("请选择故障类型");
+                    break;
+                }
               if (TextUtils.isEmpty(repairTime)){
                     ToastUtil.showShort(this,"请选择维修时间");
                     break;
@@ -185,8 +224,8 @@ public class RepairActivity extends BaseActivity {
                     break;
                 }
                 Map<String,Object> param = new HashMap<>();
-                param.put("repairDeviceMac","1111");
-                param.put("repairType","漏水");
+                param.put("repairDeviceMac",repairDeviceMac );
+                param.put("repairType",repairType);
                 param.put("repairTime",repairTime);
                 param.put("repairAddress",repairAddress1+repairAddress2);
                 param.put("repairDesc",repairDesc);
@@ -269,6 +308,116 @@ public class RepairActivity extends BaseActivity {
             }
         }
     }
+
+    Dialog dialog;
+    int Pos ;
+     private void customDialog() {
+        dialog  = new Dialog(this, R.style.MyDialog);
+        View view = View.inflate(this, R.layout.dialog_chooseequ, null);
+        TextView tv_choose_qx = (TextView) view.findViewById(R.id.tv_choose_qx);
+        TextView tv_choose_qd = (TextView) view.findViewById(R.id.tv_choose_qd);
+        RecyclerView rv_choose = (RecyclerView) view.findViewById(R.id.rv_choose);
+        final RepairListAdapter repairListAdapter = new RepairListAdapter(this,equipmentList);
+        rv_choose.setLayoutManager(new LinearLayoutManager(this));
+        rv_choose.setAdapter(repairListAdapter);
+        repairListAdapter.SetOnItemClick(new RepairListAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(View view, int position) {
+                repairListAdapter.setColor(true,position);
+                Pos = position;
+                Log.e("Click", "onItemClick: -->" );
+            }
+
+            @Override
+            public void onLongClick(View view, int posotion) {
+
+            }
+        });
+        dialog.setContentView(view);
+        //使得点击对话框外部不消失对话框
+        dialog.setCanceledOnTouchOutside(false);
+        //设置对话框的大小
+        view.setMinimumHeight((int) (ScreenSizeUtils.getInstance(this).getScreenHeight() * 0.23f));
+        Window dialogWindow = dialog.getWindow();
+        WindowManager.LayoutParams lp = dialogWindow.getAttributes();
+        lp.width = (int) (ScreenSizeUtils.getInstance(this).getScreenWidth() * 0.75f);
+        lp.height = (int) (ScreenSizeUtils.getInstance(this).getScreenHeight() * 0.45f);
+        lp.gravity = Gravity.CENTER;
+        dialogWindow.setAttributes(lp);
+        tv_choose_qx.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                dialog.dismiss();
+            }
+
+        });
+        tv_choose_qd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                tv_repair_name1.setText(equipmentList.get(Pos).getDeviceMac());
+                dialog.dismiss();
+
+            }
+        });
+        dialog.show();
+
+    }
+
+
+    private void customDialog1(final List<Equipment> list) {
+        dialog  = new Dialog(this, R.style.MyDialog);
+        View view = View.inflate(this, R.layout.dialog_choosegz, null);
+        TextView tv_choose_qx = (TextView) view.findViewById(R.id.tv_choose_qx);
+        TextView tv_choose_qd = (TextView) view.findViewById(R.id.tv_choose_qd);
+        RecyclerView rv_choose = (RecyclerView) view.findViewById(R.id.rv_choosegz);
+        final RepairListAdapter repairListAdapter = new RepairListAdapter(this,list);
+        rv_choose.setLayoutManager(new LinearLayoutManager(this));
+        rv_choose.setAdapter(repairListAdapter);
+        repairListAdapter.SetOnItemClick(new RepairListAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(View view, int position) {
+                repairListAdapter.setColor(true,position);
+                Pos = position;
+                Log.e("Click", "onItemClick: -->" );
+            }
+
+            @Override
+            public void onLongClick(View view, int posotion) {
+
+            }
+        });
+        dialog.setContentView(view);
+        //使得点击对话框外部不消失对话框
+        dialog.setCanceledOnTouchOutside(false);
+        //设置对话框的大小
+        view.setMinimumHeight((int) (ScreenSizeUtils.getInstance(this).getScreenHeight() * 0.23f));
+        Window dialogWindow = dialog.getWindow();
+        WindowManager.LayoutParams lp = dialogWindow.getAttributes();
+        lp.width = (int) (ScreenSizeUtils.getInstance(this).getScreenWidth() * 0.75f);
+        lp.height = (int) (ScreenSizeUtils.getInstance(this).getScreenHeight() * 0.45f);
+        lp.gravity = Gravity.CENTER;
+        dialogWindow.setAttributes(lp);
+        tv_choose_qx.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                dialog.dismiss();
+            }
+
+        });
+        tv_choose_qd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                tv_repair_gz.setText(list.get(Pos).getDeviceMac());
+                dialog.dismiss();
+
+            }
+        });
+        dialog.show();
+
+    }
+
 
 
     //显示dialog
@@ -447,7 +596,6 @@ public class RepairActivity extends BaseActivity {
     private int p3=-1;
     private void showPopup() {
         parser();
-
         contentViewSign = LayoutInflater.from(this).inflate(R.layout.popup_shop_city, null);
         view_dis = contentViewSign.findViewById(R.id.view_dis);
         listCity = (ListView) contentViewSign.findViewById(R.id.list_city);
@@ -477,7 +625,6 @@ public class RepairActivity extends BaseActivity {
                 img_shi.setImageResource(R.mipmap.dz_gray);
                 img_qu.setImageResource(R.mipmap.dz_gray);
                 cityAdapter.setCurrentItem(p1);
-
             }
         });
         rl_shi.setOnClickListener(new View.OnClickListener() {
@@ -613,7 +760,6 @@ public class RepairActivity extends BaseActivity {
             if (cities.size() > 0) {
                 districts = cities.get(sign_city).getDistricts();
                 for (int a = 0; a < districts.size(); a++) {
-                    if (!districts.get(a).getName().equals(cities.get(sign_city).getName()))
                         data.add(districts.get(a).getName());
                 }
             } else {

@@ -2,14 +2,11 @@ package com.peihou.waterpurifer.activity;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -24,7 +21,6 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.peihou.waterpurifer.MainActivity;
 import com.peihou.waterpurifer.R;
 import com.peihou.waterpurifer.adapter.ShareEqupmentAdapter;
@@ -34,22 +30,17 @@ import com.peihou.waterpurifer.base.MyApplication;
 import com.peihou.waterpurifer.database.dao.daoImp.EquipmentImpl;
 import com.peihou.waterpurifer.pojo.Equipment;
 import com.peihou.waterpurifer.service.MQService;
-import com.peihou.waterpurifer.service.MQTTMessageReveiver;
 import com.peihou.waterpurifer.util.HttpUtils;
 import com.peihou.waterpurifer.util.ToastUtil;
 import com.peihou.waterpurifer.util.view.ScreenSizeUtils;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
 import butterknife.BindView;
 import butterknife.OnClick;
 
@@ -169,6 +160,7 @@ public class ShareEqupmentActivity extends BaseActivity {
                         int deviceLeaseType = Devices.getInt("deviceLeaseType");
                         int devicePayType = Devices.getInt("devicePayType");
                         int deviceFlag = Devices.getInt("deviceFlag");
+                        int deviceData = Devices.getInt("deviceData");
                         Equipment equipment = new Equipment();
                         equipment.setId(deviceId);
                         equipment.setDeviceMac(deviceMac);
@@ -179,10 +171,11 @@ public class ShareEqupmentActivity extends BaseActivity {
                         equipment.setDevicePayType(devicePayType);
                         equipment.setDeviceFlag(deviceFlag);
                         equipment.setRoleFlag(1);
+                        equipment.setTodayUse(deviceData);
                         equmentDao.insert(equipment);
                         equipmentList.add(equipment);
-                       String onlineTopicName = "p99/wPurifier1/" + deviceMac + "/transfer";
-                       String offlineTopicName = "p99/wPurifier1/" + deviceMac + "/lwt";
+                        String onlineTopicName = "p99/wPurifier1/" + deviceMac + "/transfer";
+                        String offlineTopicName = "p99/wPurifier1/" + deviceMac + "/lwt";
                         clcokservice.subscribe(onlineTopicName,1);
                         clcokservice.subscribe(offlineTopicName,1);
                     }

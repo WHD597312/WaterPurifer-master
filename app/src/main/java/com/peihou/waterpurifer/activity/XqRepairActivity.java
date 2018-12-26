@@ -9,8 +9,10 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -24,6 +26,9 @@ import com.peihou.waterpurifer.pojo.RepairList;
 import com.peihou.waterpurifer.util.HttpUtils;
 import com.peihou.waterpurifer.util.NetWorkUtil;
 import com.peihou.waterpurifer.util.ToastUtil;
+import com.scwang.smartrefresh.layout.api.RefreshLayout;
+import com.scwang.smartrefresh.layout.listener.OnLoadMoreListener;
+import com.scwang.smartrefresh.layout.listener.OnRefreshListener;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -48,6 +53,9 @@ public class XqRepairActivity extends BaseActivity {
     List<RepairList> repairLists;
     private ProgressDialog progressDialog;
     getRepairListAsyncTask task;
+    RefreshLayout refreshLayou;
+    xqRepairAdapter xqRepairAdapter;
+    int pageNum=1;
     @Override
     public void initParms(Bundle parms) {
 
@@ -67,18 +75,50 @@ public class XqRepairActivity extends BaseActivity {
         application.addActivity(this);
         preferences = getSharedPreferences("my",MODE_PRIVATE);
         userId = preferences.getString("userId","");
-        progressDialog = new ProgressDialog(this);
-        showProgressDialog("正在查询，请稍后。。。");
         repairLists = new ArrayList<>();
+        getRepairList();
+        refreshLayou = view. findViewById(R.id.refreshLayout_xq);
+        refreshLayou.setOnRefreshListener(new OnRefreshListener() {
+            @Override
+            public void onRefresh(@NonNull RefreshLayout refreshLayout) {
+
+                boolean isConn = NetWorkUtil.isConn(MyApplication.getContext());
+                if (isConn){
+                    repairLists.clear();
+                    pageNum=1;
+                    getRepairList();
+                }else {
+                    ToastUtil.showShort( XqRepairActivity.this,"无网络可用，请检查网络");
+                }
+
+            }
+
+        });
+
+        refreshLayou.setOnLoadMoreListener(new OnLoadMoreListener() {
+            @Override
+            public void onLoadMore(@NonNull RefreshLayout refreshLayout) {
+                boolean isConn = NetWorkUtil.isConn(MyApplication.getContext());
+                if (isConn){
+//                    refreshLayout.finishLoadMore(5000,false,false);
+                    pageNum++;
+                    getRepairList();
+                }else {
+                    ToastUtil.showShort( XqRepairActivity.this,"无网络可用，请检查网络");
+                }
+            }
+        });
+
+
+    }
+    public void getRepairList(){
         boolean isConn = NetWorkUtil.isConn(MyApplication.getContext());
         if (isConn) {
-
-              task =  new  getRepairListAsyncTask();
+            task =  new  getRepairListAsyncTask();
             task.execute();
             new Thread(){
                 public void run() {
                     try {
-
                         task.get(5, TimeUnit.SECONDS);
                     } catch (InterruptedException | ExecutionException e) {
                     } catch (TimeoutException e) {
@@ -91,12 +131,14 @@ public class XqRepairActivity extends BaseActivity {
         }else {
             ToastUtil.showShort(this, "无网络可用，请检查网络");
         }
-
     }
 
     @Override
     public void doBusiness(Context mContext) {
-
+        xqRepairAdapter = new xqRepairAdapter(XqRepairActivity.this,repairLists);
+        rv_xqrepair.setLayoutManager(new LinearLayoutManager(XqRepairActivity.this));
+        rv_xqrepair.addItemDecoration(new SpacesItemDecoration(20));
+        rv_xqrepair.setAdapter(xqRepairAdapter);
     }
 
     @Override
@@ -125,8 +167,6 @@ public class XqRepairActivity extends BaseActivity {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             if ("TimeOut".equals(msg.obj)){
-                if (progressDialog!=null&&progressDialog.isShowing())
-                    progressDialog.dismiss();
                 Toast.makeText(XqRepairActivity.this,"请求超时,请重试",Toast.LENGTH_SHORT).show();
             }
         }
@@ -137,26 +177,31 @@ public class XqRepairActivity extends BaseActivity {
         @Override
         protected String doInBackground(Void... voids) {
             String code = "";
-            String result = HttpUtils.getOkHpptRequest(HttpUtils.ipAddress+"/app/user/getRepairList?repairCreatorId="+userId);
+            String result = HttpUtils.getOkHpptRequest(HttpUtils.ipAddress+"/app/user/getRepairList?repairCreatorId="+userId+"&pageNum="+pageNum);
             Log.e("result", "doInBackground: --》"+result );
             try {
-                JSONObject jsonObject = new JSONObject(result);
-                code = jsonObject.getString("returnCode");
-                JSONArray returnData = jsonObject.getJSONArray("returnData");
-                for (int j=0;j<returnData.length();j++){
-                    JSONObject jsonObject1 = returnData.getJSONObject(j);
-                    RepairList repairList = new RepairList();
-                    repairList.setRepairDeviceType(jsonObject1.getString("repairDeviceType"));
-                    repairList.setRepairFlag(jsonObject1.getInt("repairFlag"));
-                    repairList.setRepairTime(jsonObject1.getString("repairTime"));
-                    repairList.setRepairDeviceId(jsonObject1.getLong("repairDeviceMac"));
-                    repairList.setRepairId(jsonObject1.getLong("repairId"));
-                    repairLists.add(repairList);
-                }
+                if (!TextUtils.isEmpty(result)){
+                    JSONObject jsonObject = new JSONObject(result);
+                    code = jsonObject.getString("returnCode");
+                    if ("100".equals(code)) {
+                        JSONArray returnData = jsonObject.getJSONArray("returnData");
+                            for (int j = 0; j < returnData.length(); j++) {
+                                JSONObject jsonObject1 = returnData.getJSONObject(j);
+                                RepairList repairList = new RepairList();
+                                repairList.setRepairDeviceType(jsonObject1.getString("repairDeviceType"));
+                                repairList.setRepairFlag(jsonObject1.getInt("repairFlag"));
+                                repairList.setRepairTime(jsonObject1.getString("repairTime"));
+                                repairList.setRepairDeviceId(jsonObject1.getLong("repairDeviceMac"));
+                                repairList.setRepairId(jsonObject1.getLong("repairId"));
+                                repairLists.add(repairList);
+                            }
+                        }
+                    }
 
-            } catch (JSONException e) {
+                } catch (JSONException e) {
                 e.printStackTrace();
             }
+
             return code;
         }
 
@@ -165,11 +210,18 @@ public class XqRepairActivity extends BaseActivity {
             super.onPostExecute(s);
             switch (s){
                 case "100":
-                    progressDialog.dismiss();
-                    xqRepairAdapter xqRepairAdapter = new xqRepairAdapter(XqRepairActivity.this,repairLists);
-                    rv_xqrepair.setLayoutManager(new LinearLayoutManager(XqRepairActivity.this));
-                    rv_xqrepair.addItemDecoration(new SpacesItemDecoration(20));
-                    rv_xqrepair.setAdapter(xqRepairAdapter);
+                    refreshLayou.finishLoadMore(true);
+                    refreshLayou.finishRefresh(true);
+                    xqRepairAdapter.notifyDataSetChanged();
+                    break;
+                case "20010":
+                    refreshLayou.finishLoadMore(false);
+                    ToastUtil.showShort(XqRepairActivity.this,"没有更多的报修信息");
+                    break;
+
+                case "20009":
+                    refreshLayou.finishRefresh(false);
+                    ToastUtil.showShort(XqRepairActivity.this,"暂时无报修设备");
                     break;
             }
         }

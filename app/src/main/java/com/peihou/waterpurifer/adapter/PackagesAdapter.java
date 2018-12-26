@@ -24,6 +24,7 @@ public class PackagesAdapter extends RecyclerView.Adapter<PackagesAdapter.MyView
     private OnItemClickListener onItemClickListener;
     private int myposition=-1;
     private int groupPosition;
+    private int whatPos;
 
 
     public PackagesAdapter(Context context , List<Packageschild> list ,int groupPosition) {
@@ -44,9 +45,8 @@ public class PackagesAdapter extends RecyclerView.Adapter<PackagesAdapter.MyView
 
 
     @Override
-    public void onBindViewHolder(@NonNull MyViewHolder holder, final int position) {
-        if (isFalse&&myposition==position){
-
+    public void onBindViewHolder(@NonNull final MyViewHolder holder, final int position) {
+        if ( myposition==position){
             holder. tv_buy_title .setTextColor(context.getResources().getColor(R.color.color_toblue));
             holder. tv_pakage_bz1 .setTextColor(context.getResources().getColor(R.color.color_toblue));
             holder. tv_packages_price .setTextColor(context.getResources().getColor(R.color.color_toblue));
@@ -76,25 +76,24 @@ public class PackagesAdapter extends RecyclerView.Adapter<PackagesAdapter.MyView
 
         }
 
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onItemClickListener.onItemClick(v, position);
+                 setIndex(position);
+                Log.e("pos1", "onClick: -->"+groupPosition );
+            }
+        });
 
-//        holder.itemView.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                onItemClickListener.onItemClick(v, position );
-//            }
-//        });
-//        holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
-//            @Override
-//            public boolean onLongClick(View v) {
-//
-//                onItemClickListener.onLongClick(v, position );
-//                return false;
-//            }
-//        });
+    }
+    public void setWhatPos(int pos){
+        this.whatPos = pos;
+
     }
 
     public void setIndex(int myposition) {
         this.myposition = myposition;
+        notifyDataSetChanged();
     }
     public void SetOnItemClick(OnItemClickListener onItemClickListener ){
         this.onItemClickListener = onItemClickListener ;
@@ -135,15 +134,6 @@ public class PackagesAdapter extends RecyclerView.Adapter<PackagesAdapter.MyView
         }
     }
 
-    boolean isFalse=false;
-    public void setFalse(int groupPositio){
-        Log.e("GGGGGGGRRRR", "setFalse: -->"+groupPosition+">>>>>"+groupPositio);
-        if(this.groupPosition==groupPositio)
-        this.isFalse=true;
-        else
-            this.isFalse=false;
-        notifyDataSetChanged();
-    }
 
 
 }

@@ -48,12 +48,11 @@ public class JournalAdapter extends RecyclerView.Adapter<JournalAdapter.MyViewHo
     @Override
     public void onBindViewHolder(@NonNull final MyViewHolder holder, final int position) {
 
-        /*yyyy-MM-dd */
+
             holder.iv_day_pic.setImageResource(R.mipmap.day_gz);
-            holder.tv_day_zs.setVisibility(View.INVISIBLE);
             holder.tv_day_gzyy.setText(mData.get(position).getFaultType());
-            holder.tv_day_time.setText("今天 "+getDateToString(Long.valueOf(mData.get(position).getFaultTime()),"HH:mm:ss"));
-            holder.tv_day_sdsj.setText(mData.get(position).getFaultDeviceMac());
+            holder.tv_day_time.setText(""+getDateToString(Long.valueOf(mData.get(position).getFaultTime()),"HH:mm:ss"));
+            holder.tv_day_sdsj.setText("设备名称："+mData.get(position).getFaultDeviceMac());
 //              holder.itemView.setOnClickListener(new View.OnClickListener() {
 //                  @Override
 //                  public void onClick(View v) {

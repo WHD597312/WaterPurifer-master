@@ -4,8 +4,13 @@ import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
+
 import com.peihou.waterpurifer.R;
+
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
@@ -14,11 +19,12 @@ import butterknife.OnClick;
  * 是否退单
  */
 public class repairDialog extends Dialog {
-
+    TextView tv_device_del;
     private String name;
     Context context;
     public repairDialog(@NonNull Context context) {
         super(context, R.style.MyDialog);
+        this.context = context;
 
     }
     @Override
@@ -26,6 +32,15 @@ public class repairDialog extends Dialog {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.popview_delete_device);
         ButterKnife.bind(this);
+         tv_device_del = (TextView)  findViewById(R.id.tv_device_del);
+        Log.e("DDDDDDDDFFFFFFF", "onCreate: -->"+tv_device_del );
+    }
+    public void setText (int i){
+        if (i==2){
+            tv_device_del.setText("确定要删除它吗？");
+        }else {
+            tv_device_del.setText("确定要退单吗？");
+        }
     }
 
     @Override

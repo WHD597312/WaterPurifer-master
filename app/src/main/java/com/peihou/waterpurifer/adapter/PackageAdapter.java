@@ -71,13 +71,6 @@ public class PackageAdapter extends GroupedRecyclerViewAdapter {
     @Override
     public int getChildrenCount(int groupPosition) {
 
-//            if (groupPosition==0){
-//               return  packages1.size();
-//            }else if (groupPosition==1){
-//                return packages2.size();
-//            }else {
-//                return packages3.size();
-//            }
         return 1;
     }
 
@@ -129,23 +122,27 @@ public class PackageAdapter extends GroupedRecyclerViewAdapter {
 
         if (adapterList.size()>0){
             recyclerView.setLayoutManager(new GridLayoutManager(mContext, 3));
-            recyclerView.setAdapter(adapterList.get(childPosition));
-//            adapterList.get(groupPosition).SetOnItemClick(new PackagesAdapter.OnItemClickListener() {
-//                @Override
-//                public void onItemClick(View view, int position) {
-//                    isclick=true;
-//                    adapterList.get(position).setFalse(position);
-//                    adapterList.get(position).setIndex(groupPosition);
-//                    Log.e("TTTTTTTTTTTT", "setFalse: -->"+groupPosition+">>>>>"+position);
-//                    notifyDataChanged();
-//                }
-//
-//                @Override
-//                public void onLongClick(View view, int posotion ) {
-//
-//                }
-//            });
-           }
+            recyclerView.setAdapter(adapterList.get(groupPosition));
+            adapterList.get(groupPosition).SetOnItemClick(new PackagesAdapter.OnItemClickListener() {
+                @Override
+                public void onItemClick(View view, int position) {
+                    isclick=true;
+                    PackagesAdapter packagesAdapter =adapterList.get(groupPosition);
+                     packagesAdapter.setIndex(position);
+                    for (int i = 0 ;i<adapterList.size();i++){
+                        if (!adapterList.get(i).equals(packagesAdapter)){
+                            adapterList.get(i).setIndex(-1);
+                        }
+                    }
+
+                }
+
+                @Override
+                public void onLongClick(View view, int posotion) {
+
+                }
+            });
+
         }
 
 
@@ -193,6 +190,6 @@ public class PackageAdapter extends GroupedRecyclerViewAdapter {
 //                public void onLongClick(View view, int posotion) {
 //
 //                }
-//            });
+            }
     }
 

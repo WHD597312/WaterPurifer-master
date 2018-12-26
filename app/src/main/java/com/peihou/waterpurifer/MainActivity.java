@@ -120,7 +120,6 @@ public class MainActivity extends BaseActivity {
         postion = intent.getIntExtra("pos", 0);
         RoleFlag = intent.getIntExtra("RoleFlag",0);
         initView();//绑定控件
-        BottomAdpter();//底部布局adpter
         TopAdapter();//菜单adpter
         equipmentDao = new EquipmentImpl(getApplicationContext());
         List<Equipment> list = equipmentDao.findAll();
@@ -132,9 +131,11 @@ public class MainActivity extends BaseActivity {
                 equipmentList = equipmentDao.findDeviceByRoleFlag(RoleFlag);
             }
             equipment = equipmentList.get(postion);
+            BottomAdpter();//底部布局adpter
             hasData1= equipment.getHaData();
-            Log.e("hasdata", "initView: -->"+hasData1 );
+            Log.e("hasdata", "initView: -->"+hasData1 +equipment.getTodayUse());
             if (hasData1){
+
                 EquipmentChange(equipment);
             }else {
                 OnlineEqument();
@@ -254,6 +255,7 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        isRunning=true;
 
     }
     List<Equipment> list = new ArrayList<>();
@@ -348,6 +350,7 @@ public class MainActivity extends BaseActivity {
     }
 
 
+
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
 
@@ -406,7 +409,7 @@ public class MainActivity extends BaseActivity {
         });
     }
     public void EquipmentChange(Equipment equipment){
-        list.get(0).setWWaterStall(postion);
+//        list.get(0).setWWaterStall(postion);
         String wPurifierPrimaryQuqlity= equipment.getWPurifierPrimaryQuqlity();
         String wPurifierOutQuqlity = equipment.getWPurifierOutQuqlity()+"";
         int busness = equipment.getBussinessmodule() ;
@@ -464,6 +467,8 @@ public class MainActivity extends BaseActivity {
         int IsOpen = equipment.getIsOpen();
         if (IsOpen==0){
             tv_main_sb.setText("设备关机");
+        }else {
+            tv_main_sb.setText("设备开机");
         }
 
         Log.e("equipment", "EquipmentChange: -->"+equipment.getWPurifierfilter1() );

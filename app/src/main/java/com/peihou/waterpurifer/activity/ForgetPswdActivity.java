@@ -5,6 +5,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -19,7 +20,12 @@ import android.widget.EditText;
 import com.peihou.waterpurifer.R;
 import com.peihou.waterpurifer.base.BaseActivity;
 import com.peihou.waterpurifer.base.MyApplication;
+import com.peihou.waterpurifer.util.HttpUtils;
 import com.peihou.waterpurifer.util.ToastUtil;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,6 +48,8 @@ public class ForgetPswdActivity extends BaseActivity {
     SharedPreferences preferences;
     boolean isHideFirst;
     private boolean ready;
+    String phone;
+    String password;
     @Override
     public void initParms(Bundle parms) {
 
@@ -100,8 +108,7 @@ public class ForgetPswdActivity extends BaseActivity {
 
     private void registerSDK() {
         // 在尝试读取通信录时以弹窗提示用户（可选功能）
-        SMSSDK.setAskPermisionOnReadContact(true);
-
+        SMSSDK.setAskPermisionOnReadContact(false);
         final Handler handler = new Handler((Handler.Callback) this);
         EventHandler eventHandler = new EventHandler() {
             public void afterEvent(int event, int result, Object data) {
@@ -127,10 +134,10 @@ public class ForgetPswdActivity extends BaseActivity {
 
         switch (v.getId()) {
             case R.id.btn_fg_finish:
-                String phone2 = et_phone.getText().toString().trim();
+
                 String code=et_code.getText().toString().trim();
-                String password=et_password.getText().toString().trim();
-                if (TextUtils.isEmpty(phone2)){
+                 password=et_password.getText().toString().trim();
+                if (TextUtils.isEmpty(phone)){
                     ToastUtil.showShort(this,"手机号码不能为空");
                     return;
                 }
@@ -147,23 +154,23 @@ public class ForgetPswdActivity extends BaseActivity {
                     ToastUtil.showShort(this,"密码位数应该大于6小于18");
                 }else {
                     Map<String,Object> params=new HashMap<>();
-                    params.put("phone",phone2);
+                    params.put("phone",phone);
                     params.put("code",code);
                     params.put("password",password);
-
-//                    new ForgetPswdActivity.RegistAsyncTask().execute(params);
+                    new ForgetAsyncTask().execute(params);
                 }
 
 //                new getShopAsync().execute(params);
                 break;
             case R.id.btn_fg_code:
-                String phone = et_phone.getText().toString().trim();
+                 phone = et_phone.getText().toString().trim();
                 if (TextUtils.isEmpty(phone)) {
                     ToastUtil.showShort(this,"手机号码不能为空");
                 } else {
-                    SMSSDK.getVerificationCode("86",phone);
-                    countTimer=new CountTimer(60000,1000);
-                    countTimer.start();
+                    Map<String,Object> params = new HashMap<>();
+                    params.put("phone",phone);
+                    new hasPhoneAsyncTask().execute(params);
+
 //                    Map<String,Object> params1=new HashMap<>();
 //                    params1.put("phone",phone);
 //                    new PhoneExiseAsyncTask().execute(params1);
@@ -176,6 +183,82 @@ public class ForgetPswdActivity extends BaseActivity {
 
 
     }
+    class ForgetAsyncTask extends AsyncTask<Map<String,Object>,Void,String>{
+
+        @Override
+        protected String doInBackground(Map<String, Object>... maps) {
+            String code = "";
+            Map<String,Object> param = maps[0];
+            String result = HttpUtils.postOkHpptRequest(HttpUtils.ipAddress+"/app/user/forgetPassword",param);
+            if (!TextUtils.isEmpty(result)){
+                try {
+                    JSONObject jsonObject = new JSONObject(result);
+                    code = jsonObject.getString("returnCode");
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+            return code;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            switch (s){
+                case "100":
+                    toast("修改成功");
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putString("phone",phone);
+                    editor.putString("password",password);
+                    editor.commit();
+                    startActivity(LoginActivity.class);
+                    break;
+                default:
+
+                    break;
+            }
+        }
+    }
+
+
+
+    class hasPhoneAsyncTask extends AsyncTask<Map<String,Object>,Void,String>{
+
+        @Override
+        protected String doInBackground(Map<String, Object>... maps) {
+            String code = "";
+            Map<String,Object> param = maps[0];
+            String result = HttpUtils.postOkHpptRequest(HttpUtils.ipAddress+"/app/user/questPhoneIsExist",param);
+            Log.e("result", "doInBackground: -->"+result );
+            if (!TextUtils.isEmpty(result)){
+                try {
+                    JSONObject jsonObject = new JSONObject(result);
+                    code = jsonObject.getString("returnCode");
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+            return code;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            switch (s){
+                case "100":
+                    SMSSDK.getVerificationCode("86",phone);
+                    countTimer=new CountTimer(60000,1000);
+                    countTimer.start();
+                    break;
+                    default:
+                    toast("账号不存在，请注册新的账号");
+                        break;
+            }
+        }
+    }
+
     CountTimer countTimer;
     class CountTimer extends CountDownTimer {
         public CountTimer(long millisInFuture, long countDownInterval) {
