@@ -450,7 +450,6 @@ public class HttpUtils {
             if (response.isSuccessful()) {
                 result = response.body().string();
             }
-
         }catch (Exception e){
             e.printStackTrace();
         }

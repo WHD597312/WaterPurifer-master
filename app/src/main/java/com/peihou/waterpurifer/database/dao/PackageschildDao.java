@@ -28,7 +28,7 @@ public class PackageschildDao extends AbstractDao<Packageschild, Long> {
         public final static Property PchildNum = new Property(1, int.class, "pchildNum", false, "PCHILD_NUM");
         public final static Property PchildName = new Property(2, String.class, "pchildName", false, "PCHILD_NAME");
         public final static Property PchildOldPrice = new Property(3, int.class, "pchildOldPrice", false, "PCHILD_OLD_PRICE");
-        public final static Property PchildNewPrice = new Property(4, int.class, "pchildNewPrice", false, "PCHILD_NEW_PRICE");
+        public final static Property PchildNewPrice = new Property(4, double.class, "pchildNewPrice", false, "PCHILD_NEW_PRICE");
         public final static Property PchildDiscount = new Property(5, int.class, "pchildDiscount", false, "PCHILD_DISCOUNT");
         public final static Property ParentId = new Property(6, long.class, "parentId", false, "PARENT_ID");
     }
@@ -50,7 +50,7 @@ public class PackageschildDao extends AbstractDao<Packageschild, Long> {
                 "\"PCHILD_NUM\" INTEGER NOT NULL ," + // 1: pchildNum
                 "\"PCHILD_NAME\" TEXT," + // 2: pchildName
                 "\"PCHILD_OLD_PRICE\" INTEGER NOT NULL ," + // 3: pchildOldPrice
-                "\"PCHILD_NEW_PRICE\" INTEGER NOT NULL ," + // 4: pchildNewPrice
+                "\"PCHILD_NEW_PRICE\" REAL NOT NULL ," + // 4: pchildNewPrice
                 "\"PCHILD_DISCOUNT\" INTEGER NOT NULL ," + // 5: pchildDiscount
                 "\"PARENT_ID\" INTEGER NOT NULL );"); // 6: parentId
     }
@@ -76,7 +76,7 @@ public class PackageschildDao extends AbstractDao<Packageschild, Long> {
             stmt.bindString(3, pchildName);
         }
         stmt.bindLong(4, entity.getPchildOldPrice());
-        stmt.bindLong(5, entity.getPchildNewPrice());
+        stmt.bindDouble(5, entity.getPchildNewPrice());
         stmt.bindLong(6, entity.getPchildDiscount());
         stmt.bindLong(7, entity.getParentId());
     }
@@ -96,7 +96,7 @@ public class PackageschildDao extends AbstractDao<Packageschild, Long> {
             stmt.bindString(3, pchildName);
         }
         stmt.bindLong(4, entity.getPchildOldPrice());
-        stmt.bindLong(5, entity.getPchildNewPrice());
+        stmt.bindDouble(5, entity.getPchildNewPrice());
         stmt.bindLong(6, entity.getPchildDiscount());
         stmt.bindLong(7, entity.getParentId());
     }
@@ -113,7 +113,7 @@ public class PackageschildDao extends AbstractDao<Packageschild, Long> {
             cursor.getInt(offset + 1), // pchildNum
             cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // pchildName
             cursor.getInt(offset + 3), // pchildOldPrice
-            cursor.getInt(offset + 4), // pchildNewPrice
+            cursor.getDouble(offset + 4), // pchildNewPrice
             cursor.getInt(offset + 5), // pchildDiscount
             cursor.getLong(offset + 6) // parentId
         );
@@ -126,7 +126,7 @@ public class PackageschildDao extends AbstractDao<Packageschild, Long> {
         entity.setPchildNum(cursor.getInt(offset + 1));
         entity.setPchildName(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
         entity.setPchildOldPrice(cursor.getInt(offset + 3));
-        entity.setPchildNewPrice(cursor.getInt(offset + 4));
+        entity.setPchildNewPrice(cursor.getDouble(offset + 4));
         entity.setPchildDiscount(cursor.getInt(offset + 5));
         entity.setParentId(cursor.getLong(offset + 6));
      }

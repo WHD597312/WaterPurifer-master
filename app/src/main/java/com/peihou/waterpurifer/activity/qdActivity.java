@@ -237,7 +237,7 @@ public class qdActivity extends BaseActivity {
                 JSONArray returnData = jsonObject.getJSONArray("returnData");
                 for (int i = 0; i < returnData.length(); i++) {
                     JSONObject Devices = returnData.getJSONObject(i);
-                    int deviceId = Devices.getInt("deviceId");
+                    long deviceId = Devices.getLong("deviceId");
                     String deviceName = Devices.getString("deviceName");
                     String deviceMac = Devices.getString("deviceMac");
                     int deviceType = Devices.getInt("deviceType");
@@ -328,7 +328,7 @@ class GetSharedeviceAsyncTask extends AsyncTask<Map<String,Object>,Void,String> 
                 JSONArray returnData = jsonObject.getJSONArray("returnData");
                 for (int i = 0; i < returnData.length(); i++) {
                     JSONObject Devices = returnData.getJSONObject(i);
-                    int deviceId = Devices.getInt("deviceId");
+                    long deviceId = Devices.getLong("deviceId");
                     String deviceName = Devices.getString("deviceName");
                     String deviceMac = Devices.getString("deviceMac");
                     int deviceType = Devices.getInt("deviceType");

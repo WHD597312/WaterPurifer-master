@@ -76,10 +76,12 @@ public class ShareEqupmentActivity extends BaseActivity {
         clockisBound = bindService(clockintent, clockconnection, Context.BIND_AUTO_CREATE);
         equmentDao = new EquipmentImpl(getApplicationContext());
         equipmentList = equmentDao.findDeviceByRoleFlag(1);
+        Log.d("DDDDDFFFFF333", "doInBackground: -->"+equipmentList.size());
         for (int i =0 ;i<equipmentList.size();i++){
             equmentDao.delete(equipmentList.get(i));
-            equipmentList.clear();
         }
+        equipmentList.clear();
+        Log.d("DDDDDFFFFF222", "doInBackground: -->"+equipmentList.size());
         Map<String,Object> param = new HashMap<>();
         param.put("deviceUserId",userId);
         param.put("roleFlag",1);
@@ -152,7 +154,7 @@ public class ShareEqupmentActivity extends BaseActivity {
                     JSONArray returnData = jsonObject.getJSONArray("returnData");
                     for (int i = 0; i < returnData.length(); i++) {
                         JSONObject Devices = returnData.getJSONObject(i);
-                        int deviceId = Devices.getInt("deviceId");
+                        long deviceId = Devices.getLong("deviceId");
                         String deviceName = Devices.getString("deviceName");
                         String deviceMac = Devices.getString("deviceMac");
                         int deviceType = Devices.getInt("deviceType");
@@ -178,6 +180,7 @@ public class ShareEqupmentActivity extends BaseActivity {
                         String offlineTopicName = "p99/wPurifier1/" + deviceMac + "/lwt";
                         clcokservice.subscribe(onlineTopicName,1);
                         clcokservice.subscribe(offlineTopicName,1);
+                        Log.d("DDDDDFFFFF111", "doInBackground: -->"+equipmentList.size());
                     }
 
 

@@ -1,5 +1,6 @@
 package com.peihou.waterpurifer.adapter;
 
+import android.app.Activity;
 import android.content.Context;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -9,6 +10,7 @@ import android.view.View;
 import com.donkingliang.groupedadapter.adapter.GroupedRecyclerViewAdapter;
 import com.donkingliang.groupedadapter.holder.BaseViewHolder;
 import com.peihou.waterpurifer.R;
+import com.peihou.waterpurifer.activity.PackagesActivity;
 import com.peihou.waterpurifer.database.dao.PackageschildDao;
 import com.peihou.waterpurifer.database.dao.daoImp.PackageschildImpl;
 import com.peihou.waterpurifer.pojo.Packages;
@@ -25,17 +27,18 @@ public class PackageAdapter extends GroupedRecyclerViewAdapter {
     private boolean isclick = false;
     PackagesAdapter adpter1, adapter2, adpter3;
     PackageschildImpl packageschildDao;
-
+    PackagesActivity packagesActivity;
 
     public PackageAdapter(Context context) {
         super(context);
     }
 
-    public PackageAdapter(Context context, boolean useBinding, List<Packages> list) {
+    public PackageAdapter(Context context, boolean useBinding, List<Packages> list, Activity activity) {
         super(context, useBinding);
         packageschildDao = new PackageschildImpl(context.getApplicationContext());
         this.mData = list;
         this.mContext = context;
+        this.packagesActivity = (PackagesActivity) activity;
         mDatachild = new ArrayList<>();
         adapterList = new ArrayList<>();
 //        for (int i = 0;i<list.size();i++){
@@ -57,7 +60,7 @@ public class PackageAdapter extends GroupedRecyclerViewAdapter {
         this.mData = list;
         for (int i = 0;i<mData.size();i++){
             mDatachild = packageschildDao.findByParentId(mData.get(i).getPackageId());
-            PackagesAdapter packadpter = new PackagesAdapter(mContext, mDatachild,i);
+            PackagesAdapter packadpter = new PackagesAdapter(mContext, mDatachild,packagesActivity);
             adapterList.add(packadpter);
         }
 

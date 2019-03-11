@@ -47,7 +47,11 @@ public class PackagesActivity extends BaseActivity   {
     List<Packageschild> packageschildList;
     @BindView(R.id.rv_packages)
     RecyclerView rv_packages;
+    int pay=0;
     String[] name = {"一个月","两个月","三个月","四个月","五个月","六个月","1.0 t","2.0 t","3.0 t","一年","两年","三年"};
+    int packagePayType;//套餐支付类型
+    String packageName;//套餐名称
+    long packageId;//固定套餐
     @Override
     public void initParms(Bundle parms) {
 
@@ -93,7 +97,7 @@ public class PackagesActivity extends BaseActivity   {
         }.start();
         Packageschild packageschild = new Packageschild();
 
-        packageAdapter = new PackageAdapter(PackagesActivity.this,false,packagesList1);
+        packageAdapter = new PackageAdapter(PackagesActivity.this,false,packagesList1,this);
         rv_packages.setLayoutManager(new LinearLayoutManager(PackagesActivity.this));
         rv_packages.setAdapter(packageAdapter);
 
@@ -106,8 +110,6 @@ public class PackagesActivity extends BaseActivity   {
             if ("TimeOut".equals(msg)){
                 ToastUtil.showShort(PackagesActivity.this,"服务器繁忙，请重试");
             }
-
-
         }
     };
     @Override
@@ -119,15 +121,44 @@ public class PackagesActivity extends BaseActivity   {
     public void widgetClick(View v) {
 
     }
-    @OnClick({ R.id.iv_main_memu})
+    @OnClick({ R.id.iv_main_memu,R.id.tv_buy_package})
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.iv_main_memu:
                 finish();
                 break;
+            case R.id.tv_buy_package:
+                long orderPackageId=0;
+                double pay=-1;
+                if (packageschild!=null){
+                    orderPackageId=packageschild.getPchildId();
+                    pay=packageschild.getPchildNewPrice();
+                }
+                if (pay==-1){
+                    toast("请先选择套餐");
+                }else {
+                    Intent intent = new Intent(this,CheckstandActivity.class);
+                    intent.putExtra("pay",pay);
+                    orderPackageId=packageschild.getPchildId();
+                    intent.putExtra("orderPackageId",orderPackageId);
+                    intent.putExtra("packagePayType",0);
+                    startActivity(intent);
+                }
+
+                break;
         }
     }
+    Packageschild packageschild;
+    public  void setPay (Packageschild packageschild){
+        this.packageschild=packageschild;
+    }
+
+    public Packageschild getPackageschild() {
+        return packageschild;
+    }
+
     private GetPackagesAsyncTask getPackagesAsyncTask;
+    boolean hasPackages = false;
     @SuppressLint("StaticFieldLeak")
     class GetPackagesAsyncTask extends AsyncTask<Map<String,Object>,Void,String>{
 
@@ -146,18 +177,23 @@ public class PackagesActivity extends BaseActivity   {
                     code = jsonObject.getString("returnCode");
                     if ( "100".equals(code)){
                         JSONArray jsonArray = jsonObject.getJSONArray("returnData");
+                        if (jsonArray.length()==0){
+                            hasPackages=false;
+                        }
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject father = jsonArray.getJSONObject(i);
-                            long packageId = father.getLong("packageId");
-                            String packageName = father.getString("packageName");
+                            packageId = father.getLong("packageId");
+                            packagePayType=father.getInt("packagePayType");
+                            packageName = father.getString("packageName");
                             JSONArray child = father.getJSONArray("children");
+                            hasPackages=true;
                             for (int j = 0; j < child.length(); j++) {
                                 JSONObject jsonObject1 = child.getJSONObject(j);
                                 long pchildId = jsonObject1.getLong("pchildId");
                                 int pchildNum = jsonObject1.getInt("pchildNum");
                                 String pchildName = jsonObject1.getString("pchildName"); /*'套餐名',*/
                                 int pchildOldPrice = jsonObject1.getInt("pchildOldPrice"); /* '原价',*/
-                                int pchildNewPrice = jsonObject1.getInt("pchildNewPrice"); /* '现价',*/
+                                double pchildNewPrice = jsonObject1.getDouble("pchildNewPrice"); /* '现价',*/
                                 int pchildDiscount = jsonObject1.getInt("pchildDiscount"); /*'有无折扣',*/
                                 long parentId = packageId;  /*'期限/数量'*/
                                 Packageschild packageschild = new Packageschild();
@@ -169,7 +205,6 @@ public class PackagesActivity extends BaseActivity   {
                                 packageschild.setPchildDiscount(pchildDiscount);
                                 packageschild.setParentId(parentId);
                                 packageschildDao.insert(packageschild);
-
                             }
                             Packages packages = new Packages();
                             packages.setPackageId(packageId);
@@ -196,6 +231,9 @@ public class PackagesActivity extends BaseActivity   {
                        packagesList1= packagesDao.findAll();
                         packageAdapter.setData(packagesList1);
                         packageAdapter.notifyDataChanged();
+                        if (!hasPackages){
+                            toast("没有可选择的套餐");
+                        }
                     break;
 
                     default:

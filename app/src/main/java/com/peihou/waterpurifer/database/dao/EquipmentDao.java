@@ -24,7 +24,7 @@ public class EquipmentDao extends AbstractDao<Equipment, Long> {
      * Can be used for QueryBuilder and for referencing column names.
      */
     public static class Properties {
-        public final static Property Id = new Property(0, long.class, "id", true, "_id");
+        public final static Property Id = new Property(0, Long.class, "id", true, "_id");
         public final static Property Type = new Property(1, int.class, "type", false, "TYPE");
         public final static Property TodayUse = new Property(2, int.class, "todayUse", false, "TODAY_USE");
         public final static Property HaData = new Property(3, boolean.class, "haData", false, "HA_DATA");
@@ -45,11 +45,11 @@ public class EquipmentDao extends AbstractDao<Equipment, Long> {
         public final static Property WPurifierfilter3 = new Property(18, int.class, "wPurifierfilter3", false, "W_PURIFIERFILTER3");
         public final static Property WPurifierfilter4 = new Property(19, int.class, "wPurifierfilter4", false, "W_PURIFIERFILTER4");
         public final static Property WPurifierfilter5 = new Property(20, int.class, "wPurifierfilter5", false, "W_PURIFIERFILTER5");
-        public final static Property WTrueFlowmeter = new Property(21, String.class, "wTrueFlowmeter", false, "W_TRUE_FLOWMETER");
-        public final static Property WPurifierPrimaryQuqlity = new Property(22, String.class, "wPurifierPrimaryQuqlity", false, "W_PURIFIER_PRIMARY_QUQLITY");
+        public final static Property WTrueFlowmeter = new Property(21, int.class, "wTrueFlowmeter", false, "W_TRUE_FLOWMETER");
+        public final static Property WPurifierPrimaryQuqlity = new Property(22, int.class, "wPurifierPrimaryQuqlity", false, "W_PURIFIER_PRIMARY_QUQLITY");
         public final static Property FlowmeterWarm = new Property(23, int.class, "FlowmeterWarm", false, "FLOWMETER_WARM");
         public final static Property WPurifierOutQuqlity = new Property(24, int.class, "wPurifierOutQuqlity", false, "W_PURIFIER_OUT_QUQLITY");
-        public final static Property WTotalProductionTime = new Property(25, String.class, "wTotalProductionTime", false, "W_TOTAL_PRODUCTION_TIME");
+        public final static Property WTotalProductionTime = new Property(25, int.class, "wTotalProductionTime", false, "W_TOTAL_PRODUCTION_TIME");
         public final static Property WContinuiProductionTime = new Property(26, int.class, "wContinuiProductionTime", false, "W_CONTINUI_PRODUCTION_TIME");
         public final static Property WWaterStall = new Property(27, int.class, "wWaterStall", false, "W_WATER_STALL");
         public final static Property WMobileSignal = new Property(28, int.class, "wMobileSignal", false, "W_MOBILE_SIGNAL");
@@ -67,13 +67,24 @@ public class EquipmentDao extends AbstractDao<Equipment, Long> {
         public final static Property ContinuProduction = new Property(40, int.class, "ContinuProduction", false, "CONTINU_PRODUCTION");
         public final static Property AlarmFlowmeter = new Property(41, int.class, "AlarmFlowmeter", false, "ALARM_FLOWMETER");
         public final static Property AlarmWash = new Property(42, int.class, "AlarmWash", false, "ALARM_WASH");
-        public final static Property RechargeTime = new Property(43, String.class, "RechargeTime", false, "RECHARGE_TIME");
-        public final static Property RechargeFlow = new Property(44, String.class, "RechargeFlow", false, "RECHARGE_FLOW");
-        public final static Property BackwaterInterval = new Property(45, String.class, "BackwaterInterval", false, "BACKWATER_INTERVAL");
+        public final static Property RechargeTime = new Property(43, int.class, "RechargeTime", false, "RECHARGE_TIME");
+        public final static Property RechargeFlow = new Property(44, int.class, "RechargeFlow", false, "RECHARGE_FLOW");
+        public final static Property BackwaterInterval = new Property(45, int.class, "BackwaterInterval", false, "BACKWATER_INTERVAL");
         public final static Property BackwashTime = new Property(46, int.class, "BackwashTime", false, "BACKWASH_TIME");
-        public final static Property BackwashInterval = new Property(47, String.class, "BackwashInterval", false, "BACKWASH_INTERVAL");
+        public final static Property BackwashInterval = new Property(47, int.class, "BackwashInterval", false, "BACKWASH_INTERVAL");
         public final static Property MachineType = new Property(48, int.class, "MachineType", false, "MACHINE_TYPE");
         public final static Property WashTime = new Property(49, int.class, "WashTime", false, "WASH_TIME");
+        public final static Property IsReset = new Property(50, int.class, "isReset", false, "IS_RESET");
+        public final static Property IsReset2 = new Property(51, int.class, "isReset2", false, "IS_RESET2");
+        public final static Property Gear = new Property(52, int.class, "gear", false, "GEAR");
+        public final static Property Week = new Property(53, int.class, "week", false, "WEEK");
+        public final static Property Hour = new Property(54, int.class, "hour", false, "HOUR");
+        public final static Property Min = new Property(55, int.class, "min", false, "MIN");
+        public final static Property UpTemp = new Property(56, int.class, "upTemp", false, "UP_TEMP");
+        public final static Property DownTemp = new Property(57, int.class, "downTemp", false, "DOWN_TEMP");
+        public final static Property NoWaterDS = new Property(58, int.class, "noWaterDS", false, "NO_WATER_DS");
+        public final static Property InflowTime = new Property(59, int.class, "inflowTime", false, "INFLOW_TIME");
+        public final static Property MaxInflowTime = new Property(60, int.class, "maxInflowTime", false, "MAX_INFLOW_TIME");
     }
 
 
@@ -89,7 +100,7 @@ public class EquipmentDao extends AbstractDao<Equipment, Long> {
     public static void createTable(Database db, boolean ifNotExists) {
         String constraint = ifNotExists? "IF NOT EXISTS ": "";
         db.execSQL("CREATE TABLE " + constraint + "\"EQUIPMENT\" (" + //
-                "\"_id\" INTEGER PRIMARY KEY NOT NULL ," + // 0: id
+                "\"_id\" INTEGER PRIMARY KEY ," + // 0: id
                 "\"TYPE\" INTEGER NOT NULL ," + // 1: type
                 "\"TODAY_USE\" INTEGER NOT NULL ," + // 2: todayUse
                 "\"HA_DATA\" INTEGER NOT NULL ," + // 3: haData
@@ -110,11 +121,11 @@ public class EquipmentDao extends AbstractDao<Equipment, Long> {
                 "\"W_PURIFIERFILTER3\" INTEGER NOT NULL ," + // 18: wPurifierfilter3
                 "\"W_PURIFIERFILTER4\" INTEGER NOT NULL ," + // 19: wPurifierfilter4
                 "\"W_PURIFIERFILTER5\" INTEGER NOT NULL ," + // 20: wPurifierfilter5
-                "\"W_TRUE_FLOWMETER\" TEXT," + // 21: wTrueFlowmeter
-                "\"W_PURIFIER_PRIMARY_QUQLITY\" TEXT," + // 22: wPurifierPrimaryQuqlity
+                "\"W_TRUE_FLOWMETER\" INTEGER NOT NULL ," + // 21: wTrueFlowmeter
+                "\"W_PURIFIER_PRIMARY_QUQLITY\" INTEGER NOT NULL ," + // 22: wPurifierPrimaryQuqlity
                 "\"FLOWMETER_WARM\" INTEGER NOT NULL ," + // 23: FlowmeterWarm
                 "\"W_PURIFIER_OUT_QUQLITY\" INTEGER NOT NULL ," + // 24: wPurifierOutQuqlity
-                "\"W_TOTAL_PRODUCTION_TIME\" TEXT," + // 25: wTotalProductionTime
+                "\"W_TOTAL_PRODUCTION_TIME\" INTEGER NOT NULL ," + // 25: wTotalProductionTime
                 "\"W_CONTINUI_PRODUCTION_TIME\" INTEGER NOT NULL ," + // 26: wContinuiProductionTime
                 "\"W_WATER_STALL\" INTEGER NOT NULL ," + // 27: wWaterStall
                 "\"W_MOBILE_SIGNAL\" INTEGER NOT NULL ," + // 28: wMobileSignal
@@ -132,13 +143,24 @@ public class EquipmentDao extends AbstractDao<Equipment, Long> {
                 "\"CONTINU_PRODUCTION\" INTEGER NOT NULL ," + // 40: ContinuProduction
                 "\"ALARM_FLOWMETER\" INTEGER NOT NULL ," + // 41: AlarmFlowmeter
                 "\"ALARM_WASH\" INTEGER NOT NULL ," + // 42: AlarmWash
-                "\"RECHARGE_TIME\" TEXT," + // 43: RechargeTime
-                "\"RECHARGE_FLOW\" TEXT," + // 44: RechargeFlow
-                "\"BACKWATER_INTERVAL\" TEXT," + // 45: BackwaterInterval
+                "\"RECHARGE_TIME\" INTEGER NOT NULL ," + // 43: RechargeTime
+                "\"RECHARGE_FLOW\" INTEGER NOT NULL ," + // 44: RechargeFlow
+                "\"BACKWATER_INTERVAL\" INTEGER NOT NULL ," + // 45: BackwaterInterval
                 "\"BACKWASH_TIME\" INTEGER NOT NULL ," + // 46: BackwashTime
-                "\"BACKWASH_INTERVAL\" TEXT," + // 47: BackwashInterval
+                "\"BACKWASH_INTERVAL\" INTEGER NOT NULL ," + // 47: BackwashInterval
                 "\"MACHINE_TYPE\" INTEGER NOT NULL ," + // 48: MachineType
-                "\"WASH_TIME\" INTEGER NOT NULL );"); // 49: WashTime
+                "\"WASH_TIME\" INTEGER NOT NULL ," + // 49: WashTime
+                "\"IS_RESET\" INTEGER NOT NULL ," + // 50: isReset
+                "\"IS_RESET2\" INTEGER NOT NULL ," + // 51: isReset2
+                "\"GEAR\" INTEGER NOT NULL ," + // 52: gear
+                "\"WEEK\" INTEGER NOT NULL ," + // 53: week
+                "\"HOUR\" INTEGER NOT NULL ," + // 54: hour
+                "\"MIN\" INTEGER NOT NULL ," + // 55: min
+                "\"UP_TEMP\" INTEGER NOT NULL ," + // 56: upTemp
+                "\"DOWN_TEMP\" INTEGER NOT NULL ," + // 57: downTemp
+                "\"NO_WATER_DS\" INTEGER NOT NULL ," + // 58: noWaterDS
+                "\"INFLOW_TIME\" INTEGER NOT NULL ," + // 59: inflowTime
+                "\"MAX_INFLOW_TIME\" INTEGER NOT NULL );"); // 60: maxInflowTime
     }
 
     /** Drops the underlying database table. */
@@ -150,7 +172,11 @@ public class EquipmentDao extends AbstractDao<Equipment, Long> {
     @Override
     protected final void bindValues(DatabaseStatement stmt, Equipment entity) {
         stmt.clearBindings();
-        stmt.bindLong(1, entity.getId());
+ 
+        Long id = entity.getId();
+        if (id != null) {
+            stmt.bindLong(1, id);
+        }
         stmt.bindLong(2, entity.getType());
         stmt.bindLong(3, entity.getTodayUse());
         stmt.bindLong(4, entity.getHaData() ? 1L: 0L);
@@ -183,23 +209,11 @@ public class EquipmentDao extends AbstractDao<Equipment, Long> {
         stmt.bindLong(19, entity.getWPurifierfilter3());
         stmt.bindLong(20, entity.getWPurifierfilter4());
         stmt.bindLong(21, entity.getWPurifierfilter5());
- 
-        String wTrueFlowmeter = entity.getWTrueFlowmeter();
-        if (wTrueFlowmeter != null) {
-            stmt.bindString(22, wTrueFlowmeter);
-        }
- 
-        String wPurifierPrimaryQuqlity = entity.getWPurifierPrimaryQuqlity();
-        if (wPurifierPrimaryQuqlity != null) {
-            stmt.bindString(23, wPurifierPrimaryQuqlity);
-        }
+        stmt.bindLong(22, entity.getWTrueFlowmeter());
+        stmt.bindLong(23, entity.getWPurifierPrimaryQuqlity());
         stmt.bindLong(24, entity.getFlowmeterWarm());
         stmt.bindLong(25, entity.getWPurifierOutQuqlity());
- 
-        String wTotalProductionTime = entity.getWTotalProductionTime();
-        if (wTotalProductionTime != null) {
-            stmt.bindString(26, wTotalProductionTime);
-        }
+        stmt.bindLong(26, entity.getWTotalProductionTime());
         stmt.bindLong(27, entity.getWContinuiProductionTime());
         stmt.bindLong(28, entity.getWWaterStall());
         stmt.bindLong(29, entity.getWMobileSignal());
@@ -217,35 +231,34 @@ public class EquipmentDao extends AbstractDao<Equipment, Long> {
         stmt.bindLong(41, entity.getContinuProduction());
         stmt.bindLong(42, entity.getAlarmFlowmeter());
         stmt.bindLong(43, entity.getAlarmWash());
- 
-        String RechargeTime = entity.getRechargeTime();
-        if (RechargeTime != null) {
-            stmt.bindString(44, RechargeTime);
-        }
- 
-        String RechargeFlow = entity.getRechargeFlow();
-        if (RechargeFlow != null) {
-            stmt.bindString(45, RechargeFlow);
-        }
- 
-        String BackwaterInterval = entity.getBackwaterInterval();
-        if (BackwaterInterval != null) {
-            stmt.bindString(46, BackwaterInterval);
-        }
+        stmt.bindLong(44, entity.getRechargeTime());
+        stmt.bindLong(45, entity.getRechargeFlow());
+        stmt.bindLong(46, entity.getBackwaterInterval());
         stmt.bindLong(47, entity.getBackwashTime());
- 
-        String BackwashInterval = entity.getBackwashInterval();
-        if (BackwashInterval != null) {
-            stmt.bindString(48, BackwashInterval);
-        }
+        stmt.bindLong(48, entity.getBackwashInterval());
         stmt.bindLong(49, entity.getMachineType());
         stmt.bindLong(50, entity.getWashTime());
+        stmt.bindLong(51, entity.getIsReset());
+        stmt.bindLong(52, entity.getIsReset2());
+        stmt.bindLong(53, entity.getGear());
+        stmt.bindLong(54, entity.getWeek());
+        stmt.bindLong(55, entity.getHour());
+        stmt.bindLong(56, entity.getMin());
+        stmt.bindLong(57, entity.getUpTemp());
+        stmt.bindLong(58, entity.getDownTemp());
+        stmt.bindLong(59, entity.getNoWaterDS());
+        stmt.bindLong(60, entity.getInflowTime());
+        stmt.bindLong(61, entity.getMaxInflowTime());
     }
 
     @Override
     protected final void bindValues(SQLiteStatement stmt, Equipment entity) {
         stmt.clearBindings();
-        stmt.bindLong(1, entity.getId());
+ 
+        Long id = entity.getId();
+        if (id != null) {
+            stmt.bindLong(1, id);
+        }
         stmt.bindLong(2, entity.getType());
         stmt.bindLong(3, entity.getTodayUse());
         stmt.bindLong(4, entity.getHaData() ? 1L: 0L);
@@ -278,23 +291,11 @@ public class EquipmentDao extends AbstractDao<Equipment, Long> {
         stmt.bindLong(19, entity.getWPurifierfilter3());
         stmt.bindLong(20, entity.getWPurifierfilter4());
         stmt.bindLong(21, entity.getWPurifierfilter5());
- 
-        String wTrueFlowmeter = entity.getWTrueFlowmeter();
-        if (wTrueFlowmeter != null) {
-            stmt.bindString(22, wTrueFlowmeter);
-        }
- 
-        String wPurifierPrimaryQuqlity = entity.getWPurifierPrimaryQuqlity();
-        if (wPurifierPrimaryQuqlity != null) {
-            stmt.bindString(23, wPurifierPrimaryQuqlity);
-        }
+        stmt.bindLong(22, entity.getWTrueFlowmeter());
+        stmt.bindLong(23, entity.getWPurifierPrimaryQuqlity());
         stmt.bindLong(24, entity.getFlowmeterWarm());
         stmt.bindLong(25, entity.getWPurifierOutQuqlity());
- 
-        String wTotalProductionTime = entity.getWTotalProductionTime();
-        if (wTotalProductionTime != null) {
-            stmt.bindString(26, wTotalProductionTime);
-        }
+        stmt.bindLong(26, entity.getWTotalProductionTime());
         stmt.bindLong(27, entity.getWContinuiProductionTime());
         stmt.bindLong(28, entity.getWWaterStall());
         stmt.bindLong(29, entity.getWMobileSignal());
@@ -312,40 +313,35 @@ public class EquipmentDao extends AbstractDao<Equipment, Long> {
         stmt.bindLong(41, entity.getContinuProduction());
         stmt.bindLong(42, entity.getAlarmFlowmeter());
         stmt.bindLong(43, entity.getAlarmWash());
- 
-        String RechargeTime = entity.getRechargeTime();
-        if (RechargeTime != null) {
-            stmt.bindString(44, RechargeTime);
-        }
- 
-        String RechargeFlow = entity.getRechargeFlow();
-        if (RechargeFlow != null) {
-            stmt.bindString(45, RechargeFlow);
-        }
- 
-        String BackwaterInterval = entity.getBackwaterInterval();
-        if (BackwaterInterval != null) {
-            stmt.bindString(46, BackwaterInterval);
-        }
+        stmt.bindLong(44, entity.getRechargeTime());
+        stmt.bindLong(45, entity.getRechargeFlow());
+        stmt.bindLong(46, entity.getBackwaterInterval());
         stmt.bindLong(47, entity.getBackwashTime());
- 
-        String BackwashInterval = entity.getBackwashInterval();
-        if (BackwashInterval != null) {
-            stmt.bindString(48, BackwashInterval);
-        }
+        stmt.bindLong(48, entity.getBackwashInterval());
         stmt.bindLong(49, entity.getMachineType());
         stmt.bindLong(50, entity.getWashTime());
+        stmt.bindLong(51, entity.getIsReset());
+        stmt.bindLong(52, entity.getIsReset2());
+        stmt.bindLong(53, entity.getGear());
+        stmt.bindLong(54, entity.getWeek());
+        stmt.bindLong(55, entity.getHour());
+        stmt.bindLong(56, entity.getMin());
+        stmt.bindLong(57, entity.getUpTemp());
+        stmt.bindLong(58, entity.getDownTemp());
+        stmt.bindLong(59, entity.getNoWaterDS());
+        stmt.bindLong(60, entity.getInflowTime());
+        stmt.bindLong(61, entity.getMaxInflowTime());
     }
 
     @Override
     public Long readKey(Cursor cursor, int offset) {
-        return cursor.getLong(offset + 0);
+        return cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0);
     }    
 
     @Override
     public Equipment readEntity(Cursor cursor, int offset) {
         Equipment entity = new Equipment( //
-            cursor.getLong(offset + 0), // id
+            cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0), // id
             cursor.getInt(offset + 1), // type
             cursor.getInt(offset + 2), // todayUse
             cursor.getShort(offset + 3) != 0, // haData
@@ -366,11 +362,11 @@ public class EquipmentDao extends AbstractDao<Equipment, Long> {
             cursor.getInt(offset + 18), // wPurifierfilter3
             cursor.getInt(offset + 19), // wPurifierfilter4
             cursor.getInt(offset + 20), // wPurifierfilter5
-            cursor.isNull(offset + 21) ? null : cursor.getString(offset + 21), // wTrueFlowmeter
-            cursor.isNull(offset + 22) ? null : cursor.getString(offset + 22), // wPurifierPrimaryQuqlity
+            cursor.getInt(offset + 21), // wTrueFlowmeter
+            cursor.getInt(offset + 22), // wPurifierPrimaryQuqlity
             cursor.getInt(offset + 23), // FlowmeterWarm
             cursor.getInt(offset + 24), // wPurifierOutQuqlity
-            cursor.isNull(offset + 25) ? null : cursor.getString(offset + 25), // wTotalProductionTime
+            cursor.getInt(offset + 25), // wTotalProductionTime
             cursor.getInt(offset + 26), // wContinuiProductionTime
             cursor.getInt(offset + 27), // wWaterStall
             cursor.getInt(offset + 28), // wMobileSignal
@@ -388,20 +384,31 @@ public class EquipmentDao extends AbstractDao<Equipment, Long> {
             cursor.getInt(offset + 40), // ContinuProduction
             cursor.getInt(offset + 41), // AlarmFlowmeter
             cursor.getInt(offset + 42), // AlarmWash
-            cursor.isNull(offset + 43) ? null : cursor.getString(offset + 43), // RechargeTime
-            cursor.isNull(offset + 44) ? null : cursor.getString(offset + 44), // RechargeFlow
-            cursor.isNull(offset + 45) ? null : cursor.getString(offset + 45), // BackwaterInterval
+            cursor.getInt(offset + 43), // RechargeTime
+            cursor.getInt(offset + 44), // RechargeFlow
+            cursor.getInt(offset + 45), // BackwaterInterval
             cursor.getInt(offset + 46), // BackwashTime
-            cursor.isNull(offset + 47) ? null : cursor.getString(offset + 47), // BackwashInterval
+            cursor.getInt(offset + 47), // BackwashInterval
             cursor.getInt(offset + 48), // MachineType
-            cursor.getInt(offset + 49) // WashTime
+            cursor.getInt(offset + 49), // WashTime
+            cursor.getInt(offset + 50), // isReset
+            cursor.getInt(offset + 51), // isReset2
+            cursor.getInt(offset + 52), // gear
+            cursor.getInt(offset + 53), // week
+            cursor.getInt(offset + 54), // hour
+            cursor.getInt(offset + 55), // min
+            cursor.getInt(offset + 56), // upTemp
+            cursor.getInt(offset + 57), // downTemp
+            cursor.getInt(offset + 58), // noWaterDS
+            cursor.getInt(offset + 59), // inflowTime
+            cursor.getInt(offset + 60) // maxInflowTime
         );
         return entity;
     }
      
     @Override
     public void readEntity(Cursor cursor, Equipment entity, int offset) {
-        entity.setId(cursor.getLong(offset + 0));
+        entity.setId(cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0));
         entity.setType(cursor.getInt(offset + 1));
         entity.setTodayUse(cursor.getInt(offset + 2));
         entity.setHaData(cursor.getShort(offset + 3) != 0);
@@ -422,11 +429,11 @@ public class EquipmentDao extends AbstractDao<Equipment, Long> {
         entity.setWPurifierfilter3(cursor.getInt(offset + 18));
         entity.setWPurifierfilter4(cursor.getInt(offset + 19));
         entity.setWPurifierfilter5(cursor.getInt(offset + 20));
-        entity.setWTrueFlowmeter(cursor.isNull(offset + 21) ? null : cursor.getString(offset + 21));
-        entity.setWPurifierPrimaryQuqlity(cursor.isNull(offset + 22) ? null : cursor.getString(offset + 22));
+        entity.setWTrueFlowmeter(cursor.getInt(offset + 21));
+        entity.setWPurifierPrimaryQuqlity(cursor.getInt(offset + 22));
         entity.setFlowmeterWarm(cursor.getInt(offset + 23));
         entity.setWPurifierOutQuqlity(cursor.getInt(offset + 24));
-        entity.setWTotalProductionTime(cursor.isNull(offset + 25) ? null : cursor.getString(offset + 25));
+        entity.setWTotalProductionTime(cursor.getInt(offset + 25));
         entity.setWContinuiProductionTime(cursor.getInt(offset + 26));
         entity.setWWaterStall(cursor.getInt(offset + 27));
         entity.setWMobileSignal(cursor.getInt(offset + 28));
@@ -444,13 +451,24 @@ public class EquipmentDao extends AbstractDao<Equipment, Long> {
         entity.setContinuProduction(cursor.getInt(offset + 40));
         entity.setAlarmFlowmeter(cursor.getInt(offset + 41));
         entity.setAlarmWash(cursor.getInt(offset + 42));
-        entity.setRechargeTime(cursor.isNull(offset + 43) ? null : cursor.getString(offset + 43));
-        entity.setRechargeFlow(cursor.isNull(offset + 44) ? null : cursor.getString(offset + 44));
-        entity.setBackwaterInterval(cursor.isNull(offset + 45) ? null : cursor.getString(offset + 45));
+        entity.setRechargeTime(cursor.getInt(offset + 43));
+        entity.setRechargeFlow(cursor.getInt(offset + 44));
+        entity.setBackwaterInterval(cursor.getInt(offset + 45));
         entity.setBackwashTime(cursor.getInt(offset + 46));
-        entity.setBackwashInterval(cursor.isNull(offset + 47) ? null : cursor.getString(offset + 47));
+        entity.setBackwashInterval(cursor.getInt(offset + 47));
         entity.setMachineType(cursor.getInt(offset + 48));
         entity.setWashTime(cursor.getInt(offset + 49));
+        entity.setIsReset(cursor.getInt(offset + 50));
+        entity.setIsReset2(cursor.getInt(offset + 51));
+        entity.setGear(cursor.getInt(offset + 52));
+        entity.setWeek(cursor.getInt(offset + 53));
+        entity.setHour(cursor.getInt(offset + 54));
+        entity.setMin(cursor.getInt(offset + 55));
+        entity.setUpTemp(cursor.getInt(offset + 56));
+        entity.setDownTemp(cursor.getInt(offset + 57));
+        entity.setNoWaterDS(cursor.getInt(offset + 58));
+        entity.setInflowTime(cursor.getInt(offset + 59));
+        entity.setMaxInflowTime(cursor.getInt(offset + 60));
      }
     
     @Override
@@ -470,7 +488,7 @@ public class EquipmentDao extends AbstractDao<Equipment, Long> {
 
     @Override
     public boolean hasKey(Equipment entity) {
-        throw new UnsupportedOperationException("Unsupported for entities with a non-null key");
+        return entity.getId() != null;
     }
 
     @Override

@@ -8,15 +8,15 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.net.ConnectivityManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -26,8 +26,9 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import com.peihou.waterpurifer.activity.EqupmentActivity;
-import com.peihou.waterpurifer.activity.LoginActivity;
+import com.peihou.waterpurifer.activity.TimerTaskActivity;
 import com.peihou.waterpurifer.activity.UserActivity;
 import com.peihou.waterpurifer.adapter.baseAdapter;
 import com.peihou.waterpurifer.adapter.memuAdapter;
@@ -36,10 +37,10 @@ import com.peihou.waterpurifer.base.MyApplication;
 import com.peihou.waterpurifer.database.dao.daoImp.EquipmentImpl;
 import com.peihou.waterpurifer.pojo.Equipment;
 import com.peihou.waterpurifer.service.MQService;
-import com.peihou.waterpurifer.util.ToastUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import butterknife.BindView;
 import butterknife.OnClick;
 
@@ -85,14 +86,15 @@ public class MainActivity extends BaseActivity {
     Equipment equipment;
     EquipmentImpl equipmentDao;
     MessageReceiver receiver;
-    public static boolean isRunning =false;
-    private  boolean clockisBound;
+    public static boolean isRunning = false;
+    private boolean clockisBound;
+    String macAddress;
     int style;
     String[] mdate = {"PP滤芯", "UDF滤芯", "CTO滤芯", "RO滤芯", "T33滤芯"};
     String[] water = {"10", "13", "12", "11", "16", "12", "19", "12", "10"};
     int postion;
     int RoleFlag;
-    private boolean hasData1 ;
+    private boolean hasData1;
 
     @Override
     public void initParms(Bundle parms) {
@@ -118,40 +120,41 @@ public class MainActivity extends BaseActivity {
         tv_top_phone.setText(phone);
         Intent intent = getIntent();
         postion = intent.getIntExtra("pos", 0);
-        RoleFlag = intent.getIntExtra("RoleFlag",0);
+        RoleFlag = intent.getIntExtra("RoleFlag", 0);
         initView();//绑定控件
         TopAdapter();//菜单adpter
         equipmentDao = new EquipmentImpl(getApplicationContext());
+
+
         List<Equipment> list = equipmentDao.findAll();
-        if (list.size()>0){
+        if (list.size() > 0) {
             initListeners();//底部布局
             equipmentList = equipmentDao.findDeviceByRoleFlag(RoleFlag);
             if (equipmentList.size() == 0) {
-                RoleFlag=1;
+                RoleFlag = 1;
                 equipmentList = equipmentDao.findDeviceByRoleFlag(RoleFlag);
             }
             equipment = equipmentList.get(postion);
             BottomAdpter();//底部布局adpter
-            hasData1= equipment.getHaData();
-            Log.e("hasdata", "initView: -->"+hasData1 +equipment.getTodayUse());
-            if (hasData1){
-
+            hasData1 = equipment.getHaData();
+            Log.e("hasdata", "initView: -->" + hasData1 + equipment.getTodayUse());
+            if (hasData1) {
                 EquipmentChange(equipment);
-            }else {
+            } else {
                 OnlineEqument();
             }
             String mac = equipment.getDeviceMac();
-            String title = mac.substring(mac.length()-4);
-            tv_titlename.setText("净水器"+title);
-            int deviceFlag =  equipment.getDeviceFlag();
+            String title = mac.substring(mac.length() - 4);
+            tv_titlename.setText("净水器" + title);
+            int deviceFlag = equipment.getDeviceFlag();
             int deviceLeaseType = equipment.getDeviceLeaseType();
 
 //            if (deviceLeaseType!=4&&deviceFlag==0){
 //               ToastUtil.showShort(this,"没有绑定，请联系经销商");
-                //  noEqupment();
+            //  noEqupment();
 //           }
         } else {
-                noEqupment();//没有设备
+            noEqupment();//没有设备
         }
 
         //绑定services
@@ -163,7 +166,8 @@ public class MainActivity extends BaseActivity {
         registerReceiver(receiver, intentFilter);
 
     }
-    private void OnlineEqument (){
+
+    private void OnlineEqument() {
         textView1.setText("---");
         tv_main_sz.setText("自来水水质：---TDS");
         tv_main_style.setText("");
@@ -171,7 +175,8 @@ public class MainActivity extends BaseActivity {
         tv_main_dqsz.setText("当前水质：—");
 
     }
-    private void  noEqupment (){
+
+    private void noEqupment() {
         rl_main_sb.setVisibility(View.INVISIBLE);
         rl_main_xh.setVisibility(View.INVISIBLE);
         textView1.setText("---");
@@ -218,27 +223,31 @@ public class MainActivity extends BaseActivity {
     Intent clockintent;
     MQService clcokservice;
     boolean boundclock;
-    ServiceConnection clockconnection=new ServiceConnection() {
+    ServiceConnection clockconnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             MQService.LocalBinder binder = (MQService.LocalBinder) service;
             clcokservice = binder.getService();
             boundclock = true;
 
-            if (equipmentList!=null&&!hasData1){
-                for (int i=0;i<equipmentList.size();i++){
-                    Equipment equipment = equipmentList.get(i);
+            if (equipmentList != null && !hasData1) {
+
+
+                    Equipment equipment = equipmentList.get(0);
                     String deviceMac = equipment.getDeviceMac();
-                    clcokservice.getDate(deviceMac);
-                }
+//                    clcokservice.getDate(deviceMac);
+                    clcokservice.getData(equipment.getDeviceMac(), 0x11);
+
             }
-            Log.e("QQQQQQQQQQQDDDDDDD", "onServiceConnected: ------->" );
+            Log.e("QQQQQQQQQQQDDDDDDD", "onServiceConnected: ------->");
         }
+
         @Override
         public void onServiceDisconnected(ComponentName name) {
         }
     };
-    public void initView(){
+
+    public void initView() {
         bottomSheetBehavior = BottomSheetBehavior.from(findViewById(R.id.bottomSheetLayout));
         bottomSheetLayout1 = (RelativeLayout) findViewById(R.id.bottomSheetLayout);
         rl_main_father = (RelativeLayout) findViewById(R.id.rl_main_father);
@@ -255,11 +264,13 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        isRunning=true;
+        isRunning = true;
 
     }
+
     List<Equipment> list = new ArrayList<>();
-    public void  BottomAdpter(){
+
+    public void BottomAdpter() {
 
         for (int i = 0; i < 7; i++) {
             Equipment equipment = new Equipment();
@@ -273,22 +284,22 @@ public class MainActivity extends BaseActivity {
             }
             list.add(equipment);
         }
-        adapter = new baseAdapter(this, list,equipment);
+        adapter = new baseAdapter(this, list, equipment);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
     }
 
-    public void TopAdapter(){
+    public void TopAdapter() {
 // 关闭手势滑动
         dl.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
         dl.addDrawerListener(new DrawerLayout.DrawerListener() {
             @Override
             public void onDrawerSlide(View drawerView, float slideOffset) {
-                View content  = dl.findViewById(R.id.rl_main_father);
+                View content = dl.findViewById(R.id.rl_main_father);
                 View memu = drawerView;
-                float scale = 1-slideOffset;
-                content.setTranslationX(memu.getMeasuredWidth()*(1-scale));
-                bottomSheetLayout1.setTranslationX(memu.getMeasuredWidth()*(1-scale));
+                float scale = 1 - slideOffset;
+                content.setTranslationX(memu.getMeasuredWidth() * (1 - scale));
+                bottomSheetLayout1.setTranslationX(memu.getMeasuredWidth() * (1 - scale));
                 bottomSheetLayout1.setAlpha(scale);
             }
 
@@ -312,10 +323,10 @@ public class MainActivity extends BaseActivity {
             }
         });
         List<String> mData = new ArrayList<>();
-        for (int i=0;i<7;i++){
-            mData.add("item"+i);
+        for (int i = 0; i < 7; i++) {
+            mData.add("item" + i);
         }
-        memuAdapter memuAdapter = new memuAdapter(this,mData);
+        memuAdapter memuAdapter = new memuAdapter(this, mData);
         rv_drawer.setLayoutManager(new LinearLayoutManager(this));
         rv_drawer.setAdapter(memuAdapter);
     }
@@ -332,7 +343,7 @@ public class MainActivity extends BaseActivity {
     }
 
     @SuppressLint("RtlHardcoded")
-    @OnClick({R.id.iv_main_memu,R.id.iv_top_pic,R.id.iv_main_equ})
+    @OnClick({R.id.iv_main_memu, R.id.iv_top_pic, R.id.iv_main_equ, R.id.tv_main_lhsz})
     public void onClik(View view) {
         switch (view.getId()) {
             case R.id.iv_main_memu:
@@ -344,11 +355,17 @@ public class MainActivity extends BaseActivity {
             case R.id.iv_main_equ:
                 startActivity(new Intent(this, EqupmentActivity.class));
                 break;
-
-
+            case R.id.tv_main_lhsz:
+                if (hasData1) {
+                    if (equipment.getBussinessmodule() == 0x44) {
+                        Intent intent = new Intent(this, TimerTaskActivity.class);
+                        intent.putExtra("macAddress", macAddress);
+                        startActivity(intent);
+                    }
+                }
+                break;
         }
     }
-
 
 
     @Override
@@ -369,6 +386,7 @@ public class MainActivity extends BaseActivity {
         }
         return super.onKeyDown(keyCode, event);
     }
+
     private long exitTime = 0;
 
     @Override
@@ -384,6 +402,7 @@ public class MainActivity extends BaseActivity {
             public void onStateChanged(View bottomSheet, int newState) {
 
             }
+
             @Override
             public void onSlide(View bottomSheet, float slideOffset) {
                 if (slideOffset > 0) {
@@ -408,97 +427,128 @@ public class MainActivity extends BaseActivity {
             }
         });
     }
-    public void EquipmentChange(Equipment equipment){
+    int busness;
+    public void EquipmentChange(Equipment equipment) {
 //        list.get(0).setWWaterStall(postion);
-        String wPurifierPrimaryQuqlity= equipment.getWPurifierPrimaryQuqlity();
-        String wPurifierOutQuqlity = equipment.getWPurifierOutQuqlity()+"";
-        int busness = equipment.getBussinessmodule() ;
-
-        if (busness==0||busness==0xff){
-        //00：忽略；11：按水流量租凭；22：按时间租赁；33：按售水量售水型；FF：常规机型
-        }else if(busness==0x11){
-            int  RechargeFlow = Integer.valueOf(equipment.getRechargeFlow());
-            if (RechargeFlow==0){
-                tv_main_style.setText("流量:"+(RechargeFlow) +"L");
-            }else {
-                tv_main_style.setText("流量:"+(RechargeFlow-1) +"L");
+        hasData1 = true;
+        macAddress = equipment.getDeviceMac();
+        boolean hasdate = equipment.getHaData();
+        int wPurifierPrimaryQuqlity = equipment.getWPurifierPrimaryQuqlity();
+        String wPurifierOutQuqlity = equipment.getWPurifierOutQuqlity() + "";
+         busness = equipment.getBussinessmodule();
+        tv_main_lhsz.setText("过滤后水质可饮用");
+        if (busness == 0 || busness == 0xff) {
+            //00：忽略；11：按水流量租凭；22：按时间租赁；33：按售水量售水型；FF：常规机型
+        } else if (busness == 0x11) {
+            int RechargeFlow = equipment.getRechargeFlow();
+            if (RechargeFlow == 0) {
+                tv_main_style.setText("流量:" + (RechargeFlow) + "L");
+            } else {
+                tv_main_style.setText("流量:" + (RechargeFlow - 1) + "L");
             }
-
-        }else if (busness==0x22){
-            int RechargeTime = Integer.valueOf(equipment.getRechargeTime());
-            if (RechargeTime==0){
-                tv_main_style.setText("时间:"+RechargeTime +"天");
-            }else {
-                tv_main_style.setText("时间:"+(RechargeTime-1)/24+"天");
+        } else if (busness == 0x22) {
+            int RechargeTime = equipment.getRechargeTime();
+            if (RechargeTime == 0) {
+                tv_main_style.setText("时间:" + RechargeTime + "天");
+            } else {
+                tv_main_style.setText("时间:" + (RechargeTime - 1) / 24 + "天");
             }
-
-        }else if (busness==0x33){
-            int  wWaterStall = equipment.getWWaterStall();
-            if (wWaterStall==0xEE){
-                tv_main_style.setText("售水量: 有故障" );
-            }else if(wWaterStall==0xFF){
-                tv_main_style.setText("售水量: 已用完" );
-            }else if (wWaterStall==0xAA){
-                tv_main_style.setText("售水量: 未用完" );
+        } else if (busness == 0x33) {
+            int wWaterStall = equipment.getWWaterStall();
+            if (wWaterStall == 0xEE) {
+                tv_main_style.setText("售水量: 有故障");
+            } else if (wWaterStall == 0xFF) {
+                tv_main_style.setText("售水量: 已用完");
+            } else if (wWaterStall == 0xAA) {
+                tv_main_style.setText("售水量: 未用完");
             }
-        }else if (busness==0xFF){
+        } else if (busness == 0x44) {
+            tv_main_style.setText("1018机型");
+            tv_main_lhsz.setText("任务详情");
+//            thread.start();
+        } else if (busness == 0xFF) {
             tv_main_style.setText("常规用户");
         }
-        Log.e("buness", "EquipmentChange: -->"+busness +">>>>");
+        Log.e("buness", "EquipmentChange: -->" + busness + ">>>>");
         int wMobileSignal = equipment.getWMobileSignal();
-        if (wMobileSignal<10){
+        if (wMobileSignal < 10) {
             tv_main_xh.setText("2G信号弱");
-        }else {
+        } else {
             tv_main_xh.setText("2G信号强");
         }
         textView1.setText(wPurifierOutQuqlity);
-        tv_main_sz.setText("自来水水质："+wPurifierPrimaryQuqlity+"TDS");
+        tv_main_sz.setText("自来水水质：" + wPurifierPrimaryQuqlity + "TDS");
         int Quqlity = Integer.valueOf(wPurifierOutQuqlity);
-        if (Quqlity<90){
+        if (Quqlity < 90) {
             tv_main_dqsz.setText("当前水质：优");
-        }else if (90<Quqlity&&Quqlity<=250){
+        } else if (90 < Quqlity && Quqlity <= 250) {
             tv_main_dqsz.setText("当前水质：良");
-        }else if (250<Quqlity&&Quqlity<=600){
+        } else if (250 < Quqlity && Quqlity <= 600) {
             tv_main_dqsz.setText("当前水质：中");
-        }else if (Quqlity>600){
+        } else if (Quqlity > 600) {
             tv_main_dqsz.setText("当前水质：差");
         }
         tv_main_sb.setText("设备在线");
         int IsOpen = equipment.getIsOpen();
-        if (IsOpen==0){
+        if (IsOpen == 0) {
             tv_main_sb.setText("设备关机");
-        }else {
+        } else {
             tv_main_sb.setText("设备开机");
         }
 
-        Log.e("equipment", "EquipmentChange: -->"+equipment.getWPurifierfilter1() );
-        adapter.haveGetData(true,equipment);
+        Log.e("equipment", "EquipmentChange: -->" + equipment.getWPurifierfilter1());
+        adapter.haveGetData(true, equipment);
         adapter.notifyDataSetChanged();
     }
+
     class MessageReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.e("qqqqqZZZZ???", "11111");
             String msg = intent.getStringExtra("msg");
-            Equipment msg1 =(Equipment)intent.getSerializableExtra("msg1");
-            if (msg.equals(equipment.getDeviceMac())){
-                equipment=msg1;
+            Equipment msg1 = (Equipment) intent.getSerializableExtra("msg1");
+            if (msg.equals(equipment.getDeviceMac())) {
+                equipment = msg1;
                 EquipmentChange(equipment);
             }
         }
     }
+    int [] code = {0x23,0x31,0x32,0x33,0x34,0x35,0x36,0x37};
+    Thread thread = new Thread(){
+        @Override
+        public void run() {
+            super.run();
+            try {
+
+                for (int i= 0;i<code.length;i++){
+                    sleep(2000);
+                    clcokservice.getData(equipment.getDeviceMac(), code[i]);
+                }
+                Log.e("DDDDAAADDDDAAAA", "run: -->" );
+                thread= null;
+
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    };
+
+
 
     @Override
     protected void onStop() {
         super.onStop();
-        isRunning=false;
+        isRunning = false;
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (clockisBound){
+        if (clockisBound) {
             unbindService(clockconnection);
+        }
+        if (receiver != null) {
+            unregisterReceiver(receiver);
         }
         isRunning = false;
     }

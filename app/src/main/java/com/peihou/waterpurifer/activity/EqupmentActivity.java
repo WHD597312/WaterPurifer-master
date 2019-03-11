@@ -1,15 +1,19 @@
 package com.peihou.waterpurifer.activity;
 
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -29,6 +33,7 @@ import com.peihou.waterpurifer.base.BaseActivity;
 import com.peihou.waterpurifer.base.MyApplication;
 import com.peihou.waterpurifer.database.dao.daoImp.EquipmentImpl;
 import com.peihou.waterpurifer.pojo.Equipment;
+import com.peihou.waterpurifer.service.MQService;
 import com.peihou.waterpurifer.util.HttpUtils;
 import com.peihou.waterpurifer.util.ToastUtil;
 import com.peihou.waterpurifer.util.view.ScreenSizeUtils;
@@ -58,6 +63,7 @@ public class EqupmentActivity extends BaseActivity {
     boolean isShare=false;
     public static boolean isRunning = false;
     MessageReceiver receiver;
+    private boolean clockisBound;
     @Override
     public void initParms(Bundle parms) {
 
@@ -75,6 +81,7 @@ public class EqupmentActivity extends BaseActivity {
             application = (MyApplication) getApplication();
         }
         isRunning = true;
+
         application.addActivity(this);
         equmentDao = new EquipmentImpl(getApplicationContext());
         equipment = new Equipment();
@@ -85,6 +92,10 @@ public class EqupmentActivity extends BaseActivity {
         userId = preferences.getString("userId","");
 //        equipments = equmentDao.findAll();
         equipments = equmentDao.findDeviceByRoleFlag(0);
+//        for (int i = 0;i<equipments.size();i++){
+//            Equipment equipment = equipments.get(i);
+//            equipment.setHaData(false);
+//        }
         equipments.add(equipment);
         equpmentAdapter = new EqupmentAdapter(this, equipments,this,application);
         rv_equment.setLayoutManager(new GridLayoutManager(this,2));
@@ -95,10 +106,10 @@ public class EqupmentActivity extends BaseActivity {
             public void onItemClick(View view, int position) {
                 Log.e("share", "onItemClick: -->"+isShare );
                 if (!isShare){
-                    Intent intent = new Intent(EqupmentActivity.this,MainActivity.class);
-                    intent.putExtra("pos",position);
-                    intent.putExtra("RoleFlag",0);
-                    startActivity(intent);
+                        Intent intent = new Intent(EqupmentActivity.this, MainActivity.class);
+                        intent.putExtra("pos", position);
+                        intent.putExtra("RoleFlag", 0);
+                        startActivity(intent);
                 }else {
                     ShareDialog(position);
                 }
@@ -112,11 +123,39 @@ public class EqupmentActivity extends BaseActivity {
                 }
             }
         });
+        //绑定services
+        clockintent = new Intent(EqupmentActivity.this, MQService.class);
+        clockisBound = bindService(clockintent, clockconnection, Context.BIND_AUTO_CREATE);
         IntentFilter intentFilter = new IntentFilter("EqupmentActivity");
         receiver = new MessageReceiver();
         registerReceiver(receiver, intentFilter);
     }
 
+
+    Intent clockintent;
+    MQService clcokservice;
+    boolean boundclock;
+    ServiceConnection clockconnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            MQService.LocalBinder binder = (MQService.LocalBinder) service;
+            clcokservice = binder.getService();
+            boundclock = true;
+            for (int i = 0; i < equipments.size(); i++) {
+                Equipment equipment = equipments.get(i);
+                String deviceMac = equipment.getDeviceMac();
+//                    clcokservice.getDate(deviceMac);
+                clcokservice.getData(equipment.getDeviceMac(), 0x11);
+
+
+            }
+            Log.e("QQQQQQQQQQQDDDDDDD", "onServiceConnected: ------->");
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+        }
+    };
     @Override
     protected void onStart() {
         super.onStart();
@@ -128,6 +167,12 @@ public class EqupmentActivity extends BaseActivity {
     protected void onDestroy() {
         super.onDestroy();
         isRunning=false;
+        if (receiver!=null){
+            unregisterReceiver(receiver);
+        }
+        if (handler!=null){
+            handler.removeCallbacksAndMessages(null);
+        }
     }
 
     /**
@@ -189,12 +234,19 @@ public class EqupmentActivity extends BaseActivity {
         dialog.show();
 
     }
+    @SuppressLint("HandlerLeak")
     Handler handler = new Handler(){
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             if ("TimeOut".equals(msg.obj)){
                 ToastUtil.showShort(EqupmentActivity.this,"请求超时,请重试");
+            }
+            if ("Online".equals(msg.obj)){
+                equpmentAdapter.notifyDataSetChanged();
+            }
+            if ("Offline".equals(msg.obj)){
+                equpmentAdapter.notifyDataSetChanged();
             }
         }
     };
@@ -382,6 +434,7 @@ public class EqupmentActivity extends BaseActivity {
             equipments.add(equipment1);
             equipments.add(equipment);
             Log.e("ddddd", "initView: -->"+ equipments.size() );
+            clcokservice.getData(equipment1.getDeviceMac(), 0x11);
             equpmentAdapter.notifyDataSetChanged();
         }
     }
@@ -393,17 +446,22 @@ public class EqupmentActivity extends BaseActivity {
             String msg = intent.getStringExtra("msg");
             Equipment msg1 =(Equipment)intent.getSerializableExtra("msg1");
             Log.e("DDDDDDTTTT", "onReceive: -->"+msg1+">>>>"+equipments.get(0)+">>>"+equipments.get(1) );
-//            if (msg1!=null && equipments.contains(msg1)){
-////                int index=equipments.indexOf(msg1);
-////                equipments.set(index,msg1);
-////                equpmentAdapter.RefrashData(equipments);
-////                equpmentAdapter.notifyDataSetChanged();
-////            }
-//            equipments = equmentDao.findDeviceByRoleFlag(0);
-//            equipments.add(equipment);
-//            equpmentAdapter.RefrashData(equipments);
-//            equpmentAdapter.notifyDataSetChanged();
+
+//            if (isOnline){
+//                if (msg1.getHaData()){
+//                    Message message = new Message();
+//                    message.obj="Online";
+//                    handler.sendMessage(message);
+//                }else {
+//                    Message message = new Message();
+//                    message.obj="Offline";
+//                    handler.sendMessage(message);
+//                }
+//
+//            }
 
         }
     }
+
+
 }

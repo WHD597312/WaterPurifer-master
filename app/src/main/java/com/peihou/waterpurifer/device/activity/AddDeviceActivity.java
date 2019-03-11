@@ -266,7 +266,7 @@ public class AddDeviceActivity extends BaseActivity {
                     params.put("deviceMac", deviceMac);
                     params.put("deviceType", 8);
                     params.put("deviceName", deviceMac);
-                    params.put("deviceUserId", userId);
+                    params.put("deviceUserId", Integer.valueOf(userId));
                     try {
                         new addDeviceAsyncTask().execute(params).get(5, TimeUnit.SECONDS);
                     } catch (InterruptedException | ExecutionException e) {

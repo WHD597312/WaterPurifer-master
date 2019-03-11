@@ -14,10 +14,11 @@ import android.util.Log;
 
 import com.peihou.waterpurifer.MainActivity;
 import com.peihou.waterpurifer.activity.EqupmentActivity;
-import com.peihou.waterpurifer.database.dao.EquipmentDao;
+import com.peihou.waterpurifer.activity.TimerTaskActivity;
 import com.peihou.waterpurifer.database.dao.daoImp.EquipmentImpl;
-import com.peihou.waterpurifer.device.activity.AddDeviceActivity;
+import com.peihou.waterpurifer.database.dao.daoImp.TimerTaskImpl;
 import com.peihou.waterpurifer.pojo.Equipment;
+import com.peihou.waterpurifer.pojo.TimerTask;
 import com.peihou.waterpurifer.util.TenTwoUtil;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
@@ -33,11 +34,10 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
-import javax.security.auth.login.LoginException;
 
 public class MQService extends Service {
 
@@ -58,7 +58,7 @@ public class MQService extends Service {
     private MqttClient client;
     private MqttConnectOptions options;
     String clientId = "";
-    LocalBinder binder =new LocalBinder();
+    LocalBinder binder = new LocalBinder();
     /***
      * 头码
      */
@@ -72,13 +72,15 @@ public class MQService extends Service {
      */
     private int[] bussinessmodule = {0X00, 0X11, 0X22, 0X33, 0XFF};
     EquipmentImpl equipmentDao;
+    TimerTaskImpl timerTaskDao;
 
     @Override
     public void onCreate() {
         super.onCreate();
         Log.i("MQService", "-->onCreate");
         init();
-        equipmentDao = new EquipmentImpl(this);
+        equipmentDao = new EquipmentImpl(getApplicationContext());
+        timerTaskDao = new TimerTaskImpl(getApplicationContext());
     }
 
     @Override
@@ -101,6 +103,7 @@ public class MQService extends Service {
         try {
             //host为主机名，test为clientid即连接MQTT的客户端ID，一般以客户端唯一标识符表示，MemoryPersistence设置clientid的保存形式，默认为以内存保存
 
+            clientId = UUID.randomUUID().toString();
             client = new MqttClient(host, clientId,
                     new MemoryPersistence());
             //MQTT的连接设置
@@ -151,24 +154,279 @@ public class MQService extends Service {
         }
     }
 
-    public  void getDate(String mac){
+    public void getDate(String mac, int funCode) {
         try {
             JSONObject jsonObject = new JSONObject();
             JSONArray jsonArray = new JSONArray();
             int headCode = 0x55;
-            int funCode = 2;
-            int checkCode = (headCode+funCode)%256;
+            int checkCode = (headCode + funCode) % 256;
             int endCode = 0x88;
-            jsonArray.put(0,headCode);
-            jsonArray.put(1,funCode);
-            jsonArray.put(2,checkCode);
-            jsonArray.put(3,endCode);
-            jsonObject.put("WPurifier",jsonArray);
-            String topicName="p99/wPurifier1/"+mac+"/set";
-            String payLoad=jsonObject.toString();
-            publish(topicName,1,payLoad);
+            jsonArray.put(0, headCode);
+            jsonArray.put(1, funCode);
+            jsonArray.put(2, checkCode);
+            jsonArray.put(3, endCode);
+            jsonObject.put("WPurifier", jsonArray);
+            String topicName = "p99/wPurifier1/" + mac + "/set";
+            String payLoad = jsonObject.toString();
+            publish(topicName, 1, payLoad);
             Log.e("getData", "getDate: -->");
-            Log.e("FFFDDDD", "getDate:获取数据 " +mac);
+            Log.e("FFFDDDD", "getDate:获取数据 " + mac);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 功能码为
+     * 0x11:基本功能查询
+     * 0x23:基础设置
+     * 0x31:周一定时设置查询
+     * 0x32:周二定时设置查询
+     * 0x33:周三定时设置查询
+     * 0x34:周四定时设置查询
+     * 0x35:周五定时设置查询
+     * 0x36:周六定时设置查询
+     * 0x37:周七定时设置查询
+     *
+     * @param mac
+     * @param funCode
+     */
+    public void getData(String mac, int funCode) {
+        try {
+            int headCode = 0x55;
+
+            JSONObject jsonObject = new JSONObject();
+            JSONArray jsonArray = new JSONArray();
+            jsonArray.put(0, headCode);
+            jsonArray.put(1, funCode);
+            int sum = 0;
+            for (int i = 0; i < 2; i++) {
+                sum += jsonArray.getInt(i);
+            }
+            int checkCode = sum % 256;
+            jsonArray.put(2, checkCode);
+            int endCode = 0x88;
+            jsonArray.put(3, endCode);
+            jsonObject.put("WPurifier", jsonArray);
+            String topicName = "p99/wPurifier1/" + mac + "/set";
+            String payLoad = jsonObject.toString();
+            boolean success = publish(topicName, 1, payLoad);
+            if (!success)
+                publish(topicName, 1, payLoad);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 发送基本功能
+     *
+     * @param equipment
+     */
+    public void sendData(Equipment equipment) {
+        int headCode = 0x90;
+        int busMode = equipment.getBussinessmodule();
+        int funCode = 0x11;
+        int dataLength = 0x14;
+        int runState = equipment.getIsOpen();
+        int wPurifierfilter1 = equipment.getWPurifierfilter1();
+        int wPurifierfilter2 = equipment.getWPurifierfilter2();
+        int wPurifierfilter3 = equipment.getWPurifierfilter3();
+        int wPurifierfilter4 = equipment.getWPurifierfilter4();
+        int wPurifierfilter5 = equipment.getWPurifierfilter5();
+        int IsLeakage = equipment.getIsLeakage();
+        int x[] = new int[8];
+        x[0] = wPurifierfilter1;
+        x[1] = wPurifierfilter2;
+        x[2] = wPurifierfilter3;
+        x[3] = wPurifierfilter4;
+        x[4] = wPurifierfilter5;
+        if (IsLeakage == 0) {
+            x[5] = 0;
+            x[6] = 0;
+        } else if (IsLeakage == 1) {
+            x[5] = 0;
+            x[6] = 1;
+        } else if (IsLeakage == 2) {
+            x[5] = 1;
+            x[6] = 0;
+        }
+        int content = TenTwoUtil.changeToTen(x);
+        int isReset = equipment.getIsReset();/**流量计计量清0*/
+        int wPurifierPrimaryQuqlity = equipment.getWPurifierPrimaryQuqlity();/**原水TDS*/
+        int wPurifierOutQuqlity = equipment.getWPurifierOutQuqlity();/**净水TDS*/
+        int isReset2 = equipment.getIsReset2();/**是否清除计水时间*/
+        int wContinuiProductionTime = equipment.getWContinuiProductionTime();/**设置连续制水时间*/
+        int RechargeTime = equipment.getRechargeTime();/**设置充值租赁时间*/
+        int RechargeFlow = equipment.getRechargeFlow();/**设置租赁流量*/
+        int gear = equipment.getGear();/**设置售水量档位*/
+        int ready = 0;
+        int ready2 = 0;
+        int ready3 = 0;
+        int BackwashTime = 0;
+        int wMobileSignal = equipment.getWMobileSignal();/**移动信号强弱*/
+        int machineType = 0;
+        int endCode = 0x09;
+
+        try {
+            JSONArray jsonArray = new JSONArray();
+            jsonArray.put(0, headCode);
+            jsonArray.put(1, busMode);
+            jsonArray.put(2, funCode);
+            jsonArray.put(3, dataLength);
+            jsonArray.put(4, runState);
+            jsonArray.put(5, content);
+            jsonArray.put(6, isReset);
+            jsonArray.put(7, wPurifierPrimaryQuqlity / 256);
+            jsonArray.put(8, wPurifierPrimaryQuqlity % 256);
+            jsonArray.put(9, wPurifierOutQuqlity);
+            jsonArray.put(10, isReset2);
+            jsonArray.put(11, wContinuiProductionTime);
+            jsonArray.put(12, RechargeTime / 256);
+            jsonArray.put(13, RechargeTime % 256);
+            jsonArray.put(14, RechargeFlow / 256);
+            jsonArray.put(15, RechargeFlow % 256);
+            jsonArray.put(16, gear);
+            jsonArray.put(17, ready);
+            jsonArray.put(18, ready2);
+            jsonArray.put(19, ready3);
+            jsonArray.put(20, BackwashTime);
+            jsonArray.put(21, wMobileSignal);
+            jsonArray.put(22, machineType);
+            int sum = 0;
+            for (int i = 0; i < 23; i++) {
+                sum += jsonArray.getInt(i);
+            }
+            int checkCode = sum % 256;
+            jsonArray.put(23, checkCode);
+            jsonArray.put(24, endCode);
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("WPurifier", jsonArray);
+            String mac = equipment.getDeviceMac();
+            String topicName = "p99/wPurifier1/" + mac + "/set";
+            String payLoad = jsonObject.toString();
+            boolean success = publish(topicName, 1, payLoad);
+            if (!success)
+                success = publish(topicName, 1, payLoad);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public boolean sendTimerTask(TimerTask timerTask,int week) {
+        boolean success=false;
+        try {
+            int headCode = 0x90;
+            int bussMode = 68;
+            int funCode = 0x22;
+            int dataLength = 0x11;
+            int openHour = timerTask.getOpenHour();
+            int openMin = timerTask.getOpenMin();
+            int closeHour = timerTask.getCloseHour();
+            int closeMin = timerTask.getCloseMin();
+            int openHour2 = timerTask.getOpenHour2();
+            int openMin2 = timerTask.getOpenMin2();
+            int closeHour2 = timerTask.getCloseHour2();
+            int closeMin2 = timerTask.getCloseMin2();
+            int openHour3 = timerTask.getOpenHour3();
+            int openMin3 = timerTask.getOpenMin3();
+            int closeHour3 = timerTask.getCloseHour3();
+            int closeMin3 = timerTask.getCloseMin3();
+            int sum = 0;
+            JSONArray jsonArray = new JSONArray();
+            jsonArray.put(0, headCode);
+            jsonArray.put(1, bussMode);
+            jsonArray.put(2, funCode);
+            jsonArray.put(3, dataLength);
+            jsonArray.put(4, week);
+            jsonArray.put(5, openHour);
+            jsonArray.put(6, openMin);
+            jsonArray.put(7, closeHour);
+            jsonArray.put(8, closeMin);
+            jsonArray.put(9, openHour2);
+            jsonArray.put(10, openMin2);
+            jsonArray.put(11, closeHour2);
+            jsonArray.put(12, closeMin2);
+            jsonArray.put(13, openHour3);
+            jsonArray.put(14, openMin3);
+            jsonArray.put(15, closeHour3);
+            jsonArray.put(16, closeMin3);
+            for (int i = 0; i < 17; i++) {
+                sum += jsonArray.getInt(i);
+            }
+            int checkCode = sum % 256;
+            jsonArray.put(17, checkCode);
+            int endCode = 0x09;
+            jsonArray.put(18, endCode);
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("WPurifier", jsonArray);
+            String mac = timerTask.getMacAddress();
+            String topicName = "p99/wPurifier1/" + mac + "/set";
+            String payLoad = jsonObject.toString();
+            success = publish(topicName, 1, payLoad);
+            if (!success)
+                success = publish(topicName, 1, payLoad);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return success;
+    }
+
+    public void sendBasic(Equipment equipment) {
+        try {
+            int headCode = 0x90;
+            int bussMode = equipment.getBussinessmodule();
+            int funCode = 0x23;
+            int dataLengh = 0x12;
+            int week = equipment.getWeek();//系统星期
+            int hour = equipment.getHour();//系统小时
+            int min = equipment.getMin();//系统分钟
+            int upTemp = equipment.getUpTemp();//上温
+            int downTemp = equipment.getDownTemp();//下温
+            int noWaterDS = equipment.getNoWaterDS();//无水监测灵敏度
+            int inflowTime = equipment.getInflowTime();//进水时间
+            int maxInflowTime = equipment.getMaxInflowTime();//最长进水时间
+            int endCode = 0x09;
+            int sum = 0;
+            JSONArray jsonArray = new JSONArray();
+            jsonArray.put(0, headCode);
+            jsonArray.put(1, bussMode);
+            jsonArray.put(2, funCode);
+            jsonArray.put(3, dataLengh);
+            jsonArray.put(4, week);
+            jsonArray.put(5, hour);
+            jsonArray.put(6, min);
+            jsonArray.put(7, upTemp);
+            jsonArray.put(8, downTemp);
+            jsonArray.put(9, noWaterDS);
+            jsonArray.put(10, inflowTime);
+            jsonArray.put(11, maxInflowTime);
+            jsonArray.put(12, 0);
+            jsonArray.put(13, 0);
+            jsonArray.put(14, 0);
+            jsonArray.put(15, 0);
+            jsonArray.put(16, 0);
+            jsonArray.put(17, 0);
+            jsonArray.put(18, 0);
+            jsonArray.put(19, 0);
+            jsonArray.put(20, 0);
+            jsonArray.put(21, 0);
+            for (int i = 0; i < 22; i++) {
+                sum += jsonArray.getInt(i);
+            }
+            int checkCode = sum % 256;
+            jsonArray.put(22, checkCode);
+            jsonArray.put(23, endCode);
+
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("WPurifier", jsonArray);
+            String mac = equipment.getDeviceMac();
+            String topicName = "p99/wPurifier1/" + mac + "/set";
+            String payLoad = jsonObject.toString();
+            boolean success = publish(topicName, 1, payLoad);
+            if (!success)
+                success = publish(topicName, 1, payLoad);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -184,13 +442,14 @@ public class MQService extends Service {
             String message = strings[1];/**收到的消息*/
             Log.i("topicName", "-->:" + topicName);
             String macAddress = null;
-            if (topicName.startsWith("p99/wPurifier1")){
+            if (topicName.startsWith("p99/wPurifier1")) {
                 macAddress = topicName.substring(15, topicName.lastIndexOf("/"));
             }
             JSONArray messageJsonArray = null;
             JSONObject messageJsonObject = null;
-            Equipment equipment = null;
-            equipment = equipmentDao.findDeviceByMacAddress2(macAddress);
+//            Equipment equipment = null;
+            Equipment equipment = equipmentDao.findDeviceByMacAddress2(macAddress);
+//            equipment=new Equipment();
             try {
                 if (!TextUtils.isEmpty(message) && message.startsWith("{") && message.endsWith("}")) {
                     messageJsonObject = new JSONObject(message);
@@ -198,84 +457,88 @@ public class MQService extends Service {
                 if (messageJsonObject != null && messageJsonObject.has("WPurifier")) {
                     messageJsonArray = messageJsonObject.getJSONArray("WPurifier");
                 }
-                if (messageJsonArray != null) {
-                    Log.e("hasData", "getDate: -->");
-                    int wPurifierState;/*净水器状态*/
-                    int bussinessmodule;/*商业模式*/
-                    /*净水器滤芯寿命 1-5*/
-                    int  wPurifierfilter1, wPurifierfilter2, wPurifierfilter3, wPurifierfilter4, wPurifierfilter5;
-                    String deviceMCU;
-                    String wTrueFlowmeter;/*净水器流量计实际值*/
-                    String wPurifierPrimaryQuqlity;/*净水器原生水质*/
-                    int FlowmeterWarm;/**净水器流量计报警*/
-                    int wPurifierOutQuqlity;/*净水器出水水质*/
-                    String wTotalProductionTime;/*净水器累计制水时间*/
-                    int wContinuiProductionTime;/**净水器连续制水时间*/
-                    int wWaterStall;/*净水器售水量档位*/
-                    int wMobileSignal;/*净水器移动信号*/
-                     int IsOpen ;/**净水器是否开机*/
-                     int HavaWater;/**净水器是否有水*/
-                     int WaterWash;/**净水器是否冲洗*/
-                     int MakeWater;/**净水器是否制水*/
-                     int IsFull;/**净水器是否冲满*/
-                     int Repair;/**净水器检修*/
-                     int IsLeakage;/**净水器是否漏水*/
-                     int Warming;/**净水器温度值*/
-                     int AlarmState;/**净水器设备报警状态*/
-                     int AlarmIsLeakage;/**净水器报警漏水*/
-                     int ContinuProduction ;/**净水器连续制水*/
-                     int AlarmFlowmeter ;/**净水器报警流量计错误*/
-                     int AlarmWash ;/**净水器报警冲洗电磁阀错误*/
-                     String RechargeTime;/**净水器租凭充值时间*/
-                     String RechargeFlow;/**净水器剩余充值流量*/
-                     String BackwaterInterval;/**净水器回水间隔时间*/
-                     int BackwashTime;/**净水器回水冲洗时间*/
-                     String BackwashInterval;/**净水器冲洗间隔*/
-                     int MachineType;/**净水机器类型*/
-                     int WashTime;/*净水机冲洗时间*/
 
-                    bussinessmodule = messageJsonArray.getInt(1);
-                    deviceMCU = messageJsonArray.getString(2);
-                    wPurifierState = messageJsonArray.getInt(4);
+                int funCode = -1;
+                int week = -1;
+                TimerTask timerTask = null;
+                if (topicName.contains("transfer")){
+                    if (equipment != null && messageJsonArray != null && messageJsonArray.getInt(2) == 0x11) {
+                        Log.e("hasData", "getDate: -->");
+                        int wPurifierState;/*净水器状态*/
+                        int bussinessmodule;/*商业模式*/
+                        /*净水器滤芯寿命 1-5*/
+                        int wPurifierfilter1, wPurifierfilter2, wPurifierfilter3, wPurifierfilter4, wPurifierfilter5;
+                        String deviceMCU;
+                        int wTrueFlowmeter;/*净水器流量计实际值*/
+                        int wPurifierPrimaryQuqlity;/*净水器原生水质*/
+                        int FlowmeterWarm;/**净水器流量计报警*/
+                        int wPurifierOutQuqlity;/*净水器出水水质*/
+                        int wTotalProductionTime;/*净水器累计制水时间*/
+                        int wContinuiProductionTime;/**净水器连续制水时间*/
+                        int wWaterStall;/*净水器售水量档位*/
+                        int wMobileSignal;/*净水器移动信号*/
+                        int IsOpen;/**净水器是否开机*/
+                        int HavaWater;/**净水器是否有水*/
+                        int WaterWash;/**净水器是否冲洗*/
+                        int MakeWater;/**净水器是否制水*/
+                        int IsFull;/**净水器是否冲满*/
+                        int Repair;/**净水器检修*/
+                        int IsLeakage;/**净水器是否漏水*/
+                        int Warming;/**净水器温度值*/
+                        int AlarmState;/**净水器设备报警状态*/
+                        int AlarmIsLeakage;/**净水器报警漏水*/
+                        int ContinuProduction;/**净水器连续制水*/
+                        int AlarmFlowmeter;/**净水器报警流量计错误*/
+                        int AlarmWash;/**净水器报警冲洗电磁阀错误*/
+                        int RechargeTime;/**净水器租凭充值时间*/
+                        int RechargeFlow;/**净水器剩余充值流量*/
+                        int BackwaterInterval;/**净水器回水间隔时间*/
+                        int BackwashTime;/**净水器回水冲洗时间*/
+                        int BackwashInterval;/**净水器冲洗间隔*/
+                        int MachineType;/**净水机器类型*/
+                        int WashTime;/*净水机冲洗时间*/
+
+                        bussinessmodule = messageJsonArray.getInt(1);
+                        deviceMCU = messageJsonArray.getString(3);
+                        wPurifierState = messageJsonArray.getInt(5);
                     /*bit0:0表示关机，1表示开机;bit1:0表示无缺水，1表示有缺水； bit2:制水；bit3:冲洗；bit4:水满；bit5:
                     检修；(以上各位为0是表示无报警，1表示有报警）；bit6：漏水检测状态，1功能开启，有漏水检测；0功能关闭，无漏水检测*/
-                    int[] y = TenTwoUtil.changeToTwo(wPurifierState);
-                    IsOpen=y[0];
-                    HavaWater=y[1];
-                    MakeWater=y[2];
-                    WaterWash=y[3];
-                    IsFull  = y[4];
-                    Repair  = y[5];
-                    IsLeakage=y[6];
-                    wPurifierfilter1 =  messageJsonArray.getInt(5);
-                    wPurifierfilter2 =  messageJsonArray.getInt(6);
-                    wPurifierfilter3 =  messageJsonArray.getInt(7);
-                    wPurifierfilter4 =  messageJsonArray.getInt(8);
-                    wPurifierfilter5 =  messageJsonArray.getInt(9);
-                    FlowmeterWarm = messageJsonArray.getInt(10) ;
-                    wTrueFlowmeter = messageJsonArray.getInt(11)*256 + messageJsonArray.getInt(12)+"";
-                    Warming =  messageJsonArray.getInt(13);
-                    wPurifierPrimaryQuqlity= messageJsonArray.getInt(14)*256+messageJsonArray.getInt(15)+"";
-                    wPurifierOutQuqlity = messageJsonArray.getInt(16);
-                    wTotalProductionTime = messageJsonArray.getInt(17)*256+ messageJsonArray.getInt(18)+"";
-                    AlarmState =messageJsonArray.getInt(19);
-                    int[] x = TenTwoUtil.changeToTwo(AlarmState);
-                    ContinuProduction=x[0];
-                    AlarmIsLeakage=x[1];
-                    AlarmFlowmeter=x[2];
-                    AlarmWash=x[3];
-                    wContinuiProductionTime=messageJsonArray.getInt(20);
-                    RechargeTime=messageJsonArray.getInt(21)*256+messageJsonArray.getInt(22) +"";
-                    RechargeFlow=messageJsonArray.getInt(23)*256+messageJsonArray.getInt(24) +"";
-                    BackwaterInterval=messageJsonArray.getInt(25)*256+messageJsonArray.getInt(26)+"";
-                    BackwashTime=messageJsonArray.getInt(27);
-                    BackwashInterval=messageJsonArray.getInt(28)+""+messageJsonArray.getInt(29);
-                    wWaterStall=  messageJsonArray.getInt(30);
-                    WashTime = messageJsonArray.getInt(35);
-                    wMobileSignal = messageJsonArray.getInt(36);
-                    MachineType= messageJsonArray.getInt(37);
+                        int[] y = TenTwoUtil.changeToTwo(wPurifierState);
+                        IsOpen = y[0];
+                        HavaWater = y[1];
+                        MakeWater = y[2];
+                        WaterWash = y[3];
+                        IsFull = y[4];
+                        Repair = y[5];
+                        IsLeakage = y[6];
+                        wPurifierfilter1 = messageJsonArray.getInt(6);
+                        wPurifierfilter2 = messageJsonArray.getInt(7);
+                        wPurifierfilter3 = messageJsonArray.getInt(8);
+                        wPurifierfilter4 = messageJsonArray.getInt(9);
+                        wPurifierfilter5 = messageJsonArray.getInt(10);
+                        FlowmeterWarm = messageJsonArray.getInt(11);
+                        wTrueFlowmeter = messageJsonArray.getInt(12) * 256 + messageJsonArray.getInt(13);
+                        Warming = messageJsonArray.getInt(14);
+                        wPurifierPrimaryQuqlity = messageJsonArray.getInt(15) * 256 + messageJsonArray.getInt(16);
+                        wPurifierOutQuqlity = messageJsonArray.getInt(17);
+                        wTotalProductionTime = messageJsonArray.getInt(18) * 256 + messageJsonArray.getInt(19);
+                        AlarmState = messageJsonArray.getInt(20);
+                        int[] x = TenTwoUtil.changeToTwo(AlarmState);
+                        ContinuProduction = x[0];
+                        AlarmIsLeakage = x[1];
+                        AlarmFlowmeter = x[2];
+                        AlarmWash = x[3];
+                        wContinuiProductionTime = messageJsonArray.getInt(21);
+                        RechargeTime = messageJsonArray.getInt(22) * 256 + messageJsonArray.getInt(23);
+                        RechargeFlow = messageJsonArray.getInt(24) * 256 + messageJsonArray.getInt(25);
+                        BackwaterInterval = messageJsonArray.getInt(26) * 256 + messageJsonArray.getInt(27);
+                        BackwashTime = messageJsonArray.getInt(28);
+                        BackwashInterval = messageJsonArray.getInt(29) * 256 + messageJsonArray.getInt(30);
+                        wWaterStall = messageJsonArray.getInt(31);
+                        WashTime = messageJsonArray.getInt(35);
+                        wMobileSignal = messageJsonArray.getInt(36);
+                        MachineType = messageJsonArray.getInt(37);
 
-                    if (equipment != null) {
                         equipment.setWPurifierState(wPurifierState);
                         equipment.setBussinessmodule(bussinessmodule);
                         equipment.setWPurifierfilter1(wPurifierfilter1);
@@ -313,21 +576,94 @@ public class MQService extends Service {
                         equipment.setMachineType(MachineType);
                         equipment.setHaData(true);
                         equipmentDao.update(equipment);
-                        if (MainActivity.isRunning){
-                            Intent mqttIntent = new Intent("MainActivity");
-                            mqttIntent.putExtra("msg", macAddress);
-                            mqttIntent.putExtra("msg1", equipment);
-                            sendBroadcast(mqttIntent);
-                        } else  if (EqupmentActivity.isRunning){
-                            Intent mqttIntent = new Intent("EqupmentActivity");
-                            mqttIntent.putExtra("msg", macAddress);
-                            mqttIntent.putExtra("msg1", equipment);
-                            sendBroadcast(mqttIntent);
+                    } else if (messageJsonArray != null && messageJsonArray.getInt(2) == 0x22) {
+                        funCode = 0x22;
+                        int bussMode = messageJsonArray.getInt(1);//商业模式
+                        week = messageJsonArray.getInt(4);
+                        int openHour = messageJsonArray.getInt(5);
+                        int openMin = messageJsonArray.getInt(6);
+                        int closeHour = messageJsonArray.getInt(7);
+                        int closeMin = messageJsonArray.getInt(8);
+                        int openHour2 = messageJsonArray.getInt(9);
+                        int openMin2 = messageJsonArray.getInt(10);
+                        int closeHour2 = messageJsonArray.getInt(11);
+                        int closeMin2 = messageJsonArray.getInt(12);
+                        int openHour3 = messageJsonArray.getInt(13);
+                        int openMin3 = messageJsonArray.getInt(14);
+                        int closeHour3 = messageJsonArray.getInt(15);
+                        int closeMin3 = messageJsonArray.getInt(16);
+                        timerTask=timerTaskDao.findWeekTimerTask(macAddress,week);
+
+                        if (timerTask==null){
+                            timerTask=new TimerTask(macAddress,week,openHour,openMin,closeHour,closeMin,openHour2,openMin2,closeHour2,closeMin2,openHour3,openMin3,closeHour3,closeMin3);
+                            timerTaskDao.insert(timerTask);
+                        }else {
+                            timerTask.setOpenHour(openHour);
+                            timerTask.setOpenMin(openMin);
+                            timerTask.setCloseHour(closeHour);
+                            timerTask.setCloseMin(closeMin);
+
+                            timerTask.setOpenHour2(openHour2);
+                            timerTask.setOpenMin2(openMin2);
+                            timerTask.setCloseHour2(closeHour2);
+                            timerTask.setCloseMin2(closeMin2);
+
+                            timerTask.setOpenHour3(openHour3);
+                            timerTask.setOpenMin3(openMin3);
+                            timerTask.setCloseHour3(closeHour3);
+                            timerTask.setCloseMin3(closeMin3);
+                            timerTaskDao.update(timerTask);
                         }
 
+                    } else if (messageJsonArray != null && messageJsonArray.getInt(2) == 0x23) {
+                        funCode = 0x23;
+                        int bussMode = messageJsonArray.getInt(2);
+                        week = messageJsonArray.getInt(4);//系统星期
+                        int hour = messageJsonArray.getInt(5);//系统小时
+                        int min = messageJsonArray.getInt(6);//系统分钟
+                        int upTemp = messageJsonArray.getInt(7);//上温
+                        int downTemp = messageJsonArray.getInt(8);//下温
+                        int noWaterDS = messageJsonArray.getInt(9);//无水监测灵敏度
+                        int inflowTime = messageJsonArray.getInt(10);//进水时间
+                        int maxInflowTime = messageJsonArray.getInt(11);//最长进水时间
+                        equipment.setBussinessmodule(bussMode);
+                        equipment.setWeek(week);
+                        equipment.setHour(hour);
+                        equipment.setMin(min);
+                        equipment.setUpTemp(upTemp);
+                        equipment.setDownTemp(downTemp);
+                        equipment.setNoWaterDS(noWaterDS);
+                        equipment.setInflowTime(inflowTime);
+                        equipment.setMaxInflowTime(maxInflowTime);
+                        equipmentDao.update(equipment);
 
                     }
+                }
 
+
+                if (MainActivity.isRunning) {
+                    Intent mqttIntent = new Intent("MainActivity");
+                    mqttIntent.putExtra("msg", macAddress);
+                    mqttIntent.putExtra("msg1", equipment);
+                    sendBroadcast(mqttIntent);
+                } else if (EqupmentActivity.isRunning) {
+                    Intent mqttIntent = new Intent("EqupmentActivity");
+                    mqttIntent.putExtra("msg", macAddress);
+                    mqttIntent.putExtra("msg1", equipment);
+                    sendBroadcast(mqttIntent);
+                } else if (TimerTaskActivity.running) {
+                    Intent mqttIntent = new Intent("TimerTaskActivity");
+                    mqttIntent.putExtra("macAddress", macAddress);
+                    if (0x23 == funCode) {
+                        mqttIntent.putExtra("equipment", equipment);
+                        mqttIntent.putExtra("funCode", funCode);
+                    } else if (0x22 == funCode) {
+                        mqttIntent.putExtra("week", week);
+                        mqttIntent.putExtra("funCode", funCode);
+                        mqttIntent.putExtra("timerTask",timerTask);
+                    }
+
+                    sendBroadcast(mqttIntent);
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -342,16 +678,23 @@ public class MQService extends Service {
         String onlineTopicName = "";
         String offlineTopicName = "";
         List<Equipment> equipments = equipmentDao.findAll();
-        for(int i =0;i<equipments.size();i++){
+        for (int i = 0; i < equipments.size(); i++) {
             Equipment equipment = equipments.get(i);
             String macAddress = equipment.getDeviceMac();
+//            String macAddress="1234567890";
             onlineTopicName = "p99/wPurifier1/" + macAddress + "/transfer";
             offlineTopicName = "p99/wPurifier1/" + macAddress + "/lwt";
             list.add(onlineTopicName);
             list.add(offlineTopicName);
         }
+//        String macAddress="1234567890";
+//        onlineTopicName = "p99/wPurifier1/" + macAddress + "/transfer";
+//        offlineTopicName = "p99/wPurifier1/" + macAddress + "/lwt";
+//        list.add(onlineTopicName);
+//        list.add(offlineTopicName);
         return list;
     }
+
     /***
      * 连接MQTT
      */
@@ -422,7 +765,7 @@ public class MQService extends Service {
         if (client != null && client.isConnected()) {
             try {
 
-                client.subscribe(topicName, qos);
+                client.subscribe(topicName, 1);
                 flag = true;
             } catch (MqttException e) {
                 e.printStackTrace();
@@ -461,14 +804,15 @@ public class MQService extends Service {
         protected Void doInBackground(List<String>... lists) {
             try {
 
-                List<String> topicNames = lists[0];
+                List<String> topicNames = getTopicNames();
+                boolean sss = client.isConnected();
+                Log.i("sss", "-->" + sss);
                 if (client.isConnected() && !topicNames.isEmpty()) {
                     for (String topicName : topicNames) {
                         if (!TextUtils.isEmpty(topicName)) {
                             client.subscribe(topicName, 1);
                             Log.i("client", "-->" + topicName);
-                            Log.e("FFFDDDD", "doInBackground: 订阅-->" +topicName);
-
+                            Log.e("FFFDDDD", "doInBackground: 订阅-->" + topicName);
                         }
                     }
                 }

@@ -11,9 +11,24 @@ public class Packageschild {
     private int pchildNum; /*流量、时间*/
     private String pchildName;
     private int  pchildOldPrice;
-    private int pchildNewPrice;
+    private double pchildNewPrice;
     private int pchildDiscount;
     private long parentId;
+    @Generated(hash = 1858536981)
+    public Packageschild(Long pchildId, int pchildNum, String pchildName,
+            int pchildOldPrice, double pchildNewPrice, int pchildDiscount,
+            long parentId) {
+        this.pchildId = pchildId;
+        this.pchildNum = pchildNum;
+        this.pchildName = pchildName;
+        this.pchildOldPrice = pchildOldPrice;
+        this.pchildNewPrice = pchildNewPrice;
+        this.pchildDiscount = pchildDiscount;
+        this.parentId = parentId;
+    }
+    @Generated(hash = 2017362485)
+    public Packageschild() {
+    }
     public long getParentId() {
         return this.parentId;
     }
@@ -26,10 +41,10 @@ public class Packageschild {
     public void setPchildDiscount(int pchildDiscount) {
         this.pchildDiscount = pchildDiscount;
     }
-    public int getPchildNewPrice() {
+    public double getPchildNewPrice() {
         return this.pchildNewPrice;
     }
-    public void setPchildNewPrice(int pchildNewPrice) {
+    public void setPchildNewPrice(double pchildNewPrice) {
         this.pchildNewPrice = pchildNewPrice;
     }
     public int getPchildOldPrice() {
@@ -56,21 +71,7 @@ public class Packageschild {
     public void setPchildId(Long pchildId) {
         this.pchildId = pchildId;
     }
-    @Generated(hash = 729869147)
-    public Packageschild(Long pchildId, int pchildNum, String pchildName,
-            int pchildOldPrice, int pchildNewPrice, int pchildDiscount,
-            long parentId) {
-        this.pchildId = pchildId;
-        this.pchildNum = pchildNum;
-        this.pchildName = pchildName;
-        this.pchildOldPrice = pchildOldPrice;
-        this.pchildNewPrice = pchildNewPrice;
-        this.pchildDiscount = pchildDiscount;
-        this.parentId = parentId;
-    }
-    @Generated(hash = 2017362485)
-    public Packageschild() {
-    }
+    
     
 
 }

@@ -407,7 +407,7 @@ public class LoginActivity extends BaseActivity {
                     JSONArray returnData = jsonObject.getJSONArray("returnData");
                     for (int i = 0; i < returnData.length(); i++) {
                         JSONObject Devices = returnData.getJSONObject(i);
-                        int deviceId = Devices.getInt("deviceId");
+                        long deviceId = Devices.getLong("deviceId");
                         String deviceName = Devices.getString("deviceName");
                         String deviceMac = Devices.getString("deviceMac");
                         int deviceType = Devices.getInt("deviceType");
@@ -498,7 +498,7 @@ public class LoginActivity extends BaseActivity {
                     JSONArray returnData = jsonObject.getJSONArray("returnData");
                     for (int i = 0; i < returnData.length(); i++) {
                         JSONObject Devices = returnData.getJSONObject(i);
-                        int deviceId = Devices.getInt("deviceId");
+                        long deviceId = Devices.getLong("deviceId");
                         String deviceName = Devices.getString("deviceName");
                         String deviceMac = Devices.getString("deviceMac");
                         int deviceType = Devices.getInt("deviceType");
