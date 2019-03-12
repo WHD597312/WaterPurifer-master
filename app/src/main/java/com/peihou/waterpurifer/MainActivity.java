@@ -149,10 +149,10 @@ public class MainActivity extends BaseActivity {
             int deviceFlag = equipment.getDeviceFlag();
             int deviceLeaseType = equipment.getDeviceLeaseType();
 
-//            if (deviceLeaseType!=4&&deviceFlag==0){
-//               ToastUtil.showShort(this,"没有绑定，请联系经销商");
-            //  noEqupment();
-//           }
+            if (deviceLeaseType!=5&&deviceFlag==0){
+               toast( "没有绑定，请联系经销商");
+              noEqupment();
+           }
         } else {
             noEqupment();//没有设备
         }
@@ -436,7 +436,7 @@ public class MainActivity extends BaseActivity {
         int wPurifierPrimaryQuqlity = equipment.getWPurifierPrimaryQuqlity();
         String wPurifierOutQuqlity = equipment.getWPurifierOutQuqlity() + "";
          busness = equipment.getBussinessmodule();
-        tv_main_lhsz.setText("过滤后水质可饮用");
+
         if (busness == 0 || busness == 0xff) {
             //00：忽略；11：按水流量租凭；22：按时间租赁；33：按售水量售水型；FF：常规机型
         } else if (busness == 0x11) {
@@ -446,6 +446,7 @@ public class MainActivity extends BaseActivity {
             } else {
                 tv_main_style.setText("流量:" + (RechargeFlow - 1) + "L");
             }
+            tv_main_lhsz.setText("过滤后水质可饮用");
         } else if (busness == 0x22) {
             int RechargeTime = equipment.getRechargeTime();
             if (RechargeTime == 0) {
@@ -453,6 +454,7 @@ public class MainActivity extends BaseActivity {
             } else {
                 tv_main_style.setText("时间:" + (RechargeTime - 1) / 24 + "天");
             }
+            tv_main_lhsz.setText("过滤后水质可饮用");
         } else if (busness == 0x33) {
             int wWaterStall = equipment.getWWaterStall();
             if (wWaterStall == 0xEE) {
@@ -462,12 +464,14 @@ public class MainActivity extends BaseActivity {
             } else if (wWaterStall == 0xAA) {
                 tv_main_style.setText("售水量: 未用完");
             }
+            tv_main_lhsz.setText("过滤后水质可饮用");
         } else if (busness == 0x44) {
             tv_main_style.setText("1018机型");
             tv_main_lhsz.setText("任务详情");
 //            thread.start();
         } else if (busness == 0xFF) {
             tv_main_style.setText("常规用户");
+            tv_main_lhsz.setText("过滤后水质可饮用");
         }
         Log.e("buness", "EquipmentChange: -->" + busness + ">>>>");
         int wMobileSignal = equipment.getWMobileSignal();
@@ -489,12 +493,12 @@ public class MainActivity extends BaseActivity {
             tv_main_dqsz.setText("当前水质：差");
         }
         tv_main_sb.setText("设备在线");
-        int IsOpen = equipment.getIsOpen();
-        if (IsOpen == 0) {
-            tv_main_sb.setText("设备关机");
-        } else {
-            tv_main_sb.setText("设备开机");
-        }
+//        int IsOpen = equipment.getIsOpen();
+//        if (IsOpen == 0) {
+//            tv_main_sb.setText("设备关机");
+//        } else {
+//            tv_main_sb.setText("设备开机");
+//        }
 
         Log.e("equipment", "EquipmentChange: -->" + equipment.getWPurifierfilter1());
         adapter.haveGetData(true, equipment);

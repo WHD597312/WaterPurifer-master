@@ -103,7 +103,7 @@ public class ShareEqupmentActivity extends BaseActivity {
             }
         }.start();
         Log.e("DDDDTTT", "initView: -->"+equipmentList.size() );
-         equpmentAdapter = new ShareEqupmentAdapter(this,equipmentList);
+        equpmentAdapter = new ShareEqupmentAdapter(this,equipmentList);
         rv_equment.setLayoutManager(new GridLayoutManager(this,2));
         rv_equment.addItemDecoration(new SpaceItemDecoration(22,22,25));
         rv_equment.setAdapter(equpmentAdapter);
@@ -128,7 +128,6 @@ public class ShareEqupmentActivity extends BaseActivity {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             if ("TimeOut".equals(msg.obj)){
-
                 Toast.makeText(ShareEqupmentActivity.this,"请求超时,请重试",Toast.LENGTH_SHORT).show();
             }
             if ("updata".equals(msg.obj)){
@@ -203,7 +202,6 @@ public class ShareEqupmentActivity extends BaseActivity {
                     break;
 
                 default:
-
                     ToastUtil.showShort(ShareEqupmentActivity.this, "查询失败");
                     break;
             }
@@ -277,8 +275,6 @@ public class ShareEqupmentActivity extends BaseActivity {
             MQService.LocalBinder binder = (MQService.LocalBinder) service;
             clcokservice = binder.getService();
             boundclock = true;
-
-
             Log.e("QQQQQQQQQQQDDDDDDD", "onServiceConnected: ------->");
         }
         @Override

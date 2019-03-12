@@ -106,10 +106,19 @@ public class EqupmentActivity extends BaseActivity {
             public void onItemClick(View view, int position) {
                 Log.e("share", "onItemClick: -->"+isShare );
                 if (!isShare){
+                    int deviceFlag = equipments.get(position).getDeviceFlag();
+                    int deviceLeaseType = equipments.get(position).getDeviceLeaseType();
+
+                    if (deviceLeaseType!=5&&deviceFlag==0){
+                        toast( "没有绑定，请联系经销商");
+
+                    }else {
                         Intent intent = new Intent(EqupmentActivity.this, MainActivity.class);
                         intent.putExtra("pos", position);
                         intent.putExtra("RoleFlag", 0);
                         startActivity(intent);
+                    }
+
                 }else {
                     ShareDialog(position);
                 }
