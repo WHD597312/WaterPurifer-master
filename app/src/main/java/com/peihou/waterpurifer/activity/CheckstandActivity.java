@@ -38,6 +38,8 @@ public class CheckstandActivity extends BaseActivity {
     @BindView(R.id.check_wx) CheckBox check_wx;
     @BindView(R.id.tv_order_amount)
     TextView tv_order_amount;
+    @BindView(R.id.tv_order_time)
+    TextView tv_order_time;
     @Override
     public void initParms(Bundle parms) {
 
@@ -49,16 +51,19 @@ public class CheckstandActivity extends BaseActivity {
         return R.layout.activity_checkstand;
     }
 
-    int price;//价格
+    double price;//价格
     long orderPackageId;//订单Id
     int packagePayType;//订单类型
+    String pchildName; //套餐名字
     @Override
     public void initView(View view) {
         Intent intent = getIntent();
-        price =  intent.getIntExtra("pay",0);
+        price =  intent.getDoubleExtra("pay",0);
         orderPackageId=intent.getLongExtra("orderPackageId",0);
         packagePayType=intent.getIntExtra("packagePayType",0);
+        pchildName = intent.getStringExtra("pchildName");
         tv_order_amount.setText(price+"");
+        tv_order_time.setText(pchildName);
     }
 
     @Override
@@ -102,16 +107,21 @@ public class CheckstandActivity extends BaseActivity {
                 }
                 break;
             case R.id.btn_pay:
-                int orderPayType=0;
+                int orderPayType=-1;
                 if (payWay==1){
                     orderPayType=0;
                 }else if (payWay==2){
                     orderPayType=1;
                 }
-                Map<String,Object> params=new HashMap<>();
-                params.put("orderPayType",orderPayType);
-                params.put("orderPackageId",orderPackageId);
-                new CreateOrderAsync().execute(params);
+                if (orderPayType==-1){
+                    toast("请选择支付方式");
+                }else {
+                    Map<String,Object> params=new HashMap<>();
+                    params.put("orderPayType",orderPayType);
+                    params.put("orderPackageId",orderPackageId);
+                    new CreateOrderAsync().execute(params);
+                }
+
                 break;
         }
     }

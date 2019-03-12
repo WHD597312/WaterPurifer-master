@@ -82,7 +82,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_toRightOf="@+id/tv_order_1"
-            android:text="培厚净水-套餐购买"
+            android:text="物联净水-套餐购买"
             android:textSize="@dimen/sp_14"
             android:textColor="#333333"
             android:gravity="center_vertical"
@@ -96,7 +96,7 @@
             android:layout_alignBottom="@+id/tv_order_time"
             android:layout_marginLeft="@dimen/dp_jy_20"
             android:gravity="center_vertical"
-            android:text="套餐时间："
+            android:text="套餐详情："
             android:textSize="@dimen/sp_14"
             />
 

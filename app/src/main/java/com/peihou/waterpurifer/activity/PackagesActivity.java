@@ -121,6 +121,7 @@ public class PackagesActivity extends BaseActivity   {
     public void widgetClick(View v) {
 
     }
+    String pchildName1;
     @OnClick({ R.id.iv_main_memu,R.id.tv_buy_package})
     public void onClick(View view) {
         switch (view.getId()) {
@@ -133,14 +134,15 @@ public class PackagesActivity extends BaseActivity   {
                 if (packageschild!=null){
                     orderPackageId=packageschild.getPchildId();
                     pay=packageschild.getPchildNewPrice();
+                    pchildName1 = packageschild.getPchildName();
                 }
                 if (pay==-1){
                     toast("请先选择套餐");
                 }else {
                     Intent intent = new Intent(this,CheckstandActivity.class);
                     intent.putExtra("pay",pay);
-                    orderPackageId=packageschild.getPchildId();
                     intent.putExtra("orderPackageId",orderPackageId);
+                    intent.putExtra("pchildName",pchildName1);
                     intent.putExtra("packagePayType",0);
                     startActivity(intent);
                 }

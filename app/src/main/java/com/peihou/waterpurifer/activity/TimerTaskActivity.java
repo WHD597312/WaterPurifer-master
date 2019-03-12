@@ -175,7 +175,7 @@ public class TimerTaskActivity extends BaseActivity {
     @Override
     public void doBusiness(Context mContext) {
 
-        
+
     }
 
     @Override

@@ -285,4 +285,11 @@ public class ShareEqupmentActivity extends BaseActivity {
         public void onServiceDisconnected(ComponentName name) {
         }
     };
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (clockisBound)
+            unbindService(clockconnection);
+    }
 }
